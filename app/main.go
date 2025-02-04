@@ -8,6 +8,7 @@ import (
 	"github.com/hewpao/hewpao-backend/internal/adapter/gorm"
 	"github.com/hewpao/hewpao-backend/internal/adapter/oauth"
 	"github.com/hewpao/hewpao-backend/internal/adapter/rest"
+	"github.com/hewpao/hewpao-backend/repository"
 	"github.com/hewpao/hewpao-backend/usecase"
 )
 
@@ -18,13 +19,13 @@ func main() {
 
 	app.Use(logger.New())
 
-	oauthFactory := oauth.NewOAuthServiceFactory()
-	oauthFactory.Register("google", oauth.NewGoogleOAuthService(&cfg))
+	oauthRepoFactory := repository.NewOAuthRepositoryFactory()
+	oauthRepoFactory.Register("google", oauth.NewGoogleOAuthRepository(&cfg))
 
 	userRepo := gorm.NewUserGormRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 
-	authUsecase := usecase.NewAuthUsecase(userRepo, &oauthFactory, &cfg)
+	authUsecase := usecase.NewAuthUsecase(userRepo, &oauthRepoFactory, &cfg)
 	authHandler := rest.NewAuthHandler(authUsecase)
 
 	app.Get("/", func(c *fiber.Ctx) error {

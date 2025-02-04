@@ -9,7 +9,6 @@ import (
 	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/domain/exception"
 	"github.com/hewpao/hewpao-backend/dto"
-	"github.com/hewpao/hewpao-backend/internal/adapter/oauth"
 	"github.com/hewpao/hewpao-backend/repository"
 	"github.com/hewpao/hewpao-backend/util"
 )
@@ -22,16 +21,16 @@ type AuthUsecase interface {
 }
 
 type authService struct {
-	userRepo     repository.UserRepository
-	oauthFactory *oauth.OAuthServiceFactory
-	cfg          *config.Config
+	userRepo         repository.UserRepository
+	oauthRepoFactory *repository.OAuthRepositoryFactory
+	cfg              *config.Config
 }
 
-func NewAuthUsecase(userRepo repository.UserRepository, oauthFactory *oauth.OAuthServiceFactory, cfg *config.Config) AuthUsecase {
+func NewAuthUsecase(userRepo repository.UserRepository, oauthRepoFactory *repository.OAuthRepositoryFactory, cfg *config.Config) AuthUsecase {
 	return &authService{
-		userRepo:     userRepo,
-		oauthFactory: oauthFactory,
-		cfg:          cfg,
+		userRepo:         userRepo,
+		oauthRepoFactory: oauthRepoFactory,
+		cfg:              cfg,
 	}
 }
 
@@ -123,7 +122,7 @@ func (a *authService) Register(ctx context.Context, req dto.RegisterUserRequestD
 }
 
 func (a *authService) LoginWithOAuth(ctx context.Context, req dto.LoginWithOAuthRequestDTO) (*dto.LoginResponseDTO, error) {
-	provider, err := a.oauthFactory.GetService(req.Provider)
+	provider, err := a.oauthRepoFactory.GetRepository(req.Provider)
 	if err != nil {
 		return nil, err
 	}

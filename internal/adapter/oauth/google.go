@@ -4,22 +4,22 @@ import (
 	"context"
 
 	"github.com/hewpao/hewpao-backend/config"
-	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/dto"
+	"github.com/hewpao/hewpao-backend/repository"
 	"google.golang.org/api/idtoken"
 )
 
-type GoogleOAuthService struct {
+type GoogleOAuthRepository struct {
 	cfg *config.Config
 }
 
-func NewGoogleOAuthService(cfg *config.Config) domain.OAuthService {
-	return &GoogleOAuthService{
+func NewGoogleOAuthRepository(cfg *config.Config) repository.OAuthRepository {
+	return &GoogleOAuthRepository{
 		cfg: cfg,
 	}
 }
 
-func (r *GoogleOAuthService) VerifyIDToken(ctx context.Context, idToken string) (*dto.OAuthClaims, error) {
+func (r *GoogleOAuthRepository) VerifyIDToken(ctx context.Context, idToken string) (*dto.OAuthClaims, error) {
 	payload, err := idtoken.Validate(ctx, idToken, r.cfg.GoogleClientID)
 	if err != nil {
 		return nil, err
