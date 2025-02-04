@@ -1,0 +1,71 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: ${DB_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      TZ: Asia/Bangkok
+    ports:
+      - 9090:9090
+    restart: on-failure
+    depends_on:
+      db:
+        condition: service_healthy
+  db-manager:
+    image: "dbgate/dbgate:alpine"
+    environment:
+      CONNECTIONS: con1
+      LABEL_con1: hewpao-db
+      SERVER_con1: db
+      DATABASE_con1: ${DB_DATABASE}
+      USER_con1: ${DB_USERNAME}
+      PASSWORD_con1: ${DB_PASSWORD}
+      PORT_con1: 5432
+      ENGINE_con1: postgres@dbgate-plugin-postgres
+    ports:
+      - "5433:3000"
+    volumes:
+      - db-manager-data:/root/.dbgate
+    networks:
+      - hewpao-network
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: "postgres:16-alpine"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Bangkok
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - hewpao-network
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:
+    driver: local
+  db-manager-data:
+    driver: local
+
+networks:
+  hewpao-network:
+    driver: bridge
