@@ -9,6 +9,9 @@ build-migrate:
 
 up:	dev-env
 
+logs:
+	@ docker logs hewpao-backend-app-1 --follow
+
 dev-env:
 	@ docker compose up
 

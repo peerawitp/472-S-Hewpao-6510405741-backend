@@ -22,6 +22,8 @@ exclude_regex = ["_test\\.go"]
 exclude_dir = ["tmp_app", "tmp"]
 # It's not necessary to trigger build each time file changes if it's too frequent.
 delay = 1000 # ms
+# This made live reload available for windows based dev.
+poll = true
 
 [log]
 # Show log time
