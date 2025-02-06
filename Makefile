@@ -3,13 +3,21 @@ build:
 	@ go build -trimpath -o ./bin/engine ./app/
 	@ echo "Done!"
 
-up:	dev-env dev-air
+build-migrate:
+	@ printf "Building migrate... "
+	@ go build -trimpath -o ./bin/migrate ./cmd/migrate.go
+
+up:	dev-env
 
 dev-env:
-	@ docker compose up -d --build db db-manager
-
-dev-air:
-	@ air
+	@ docker compose up
 
 migrate-dev:
 	@ go run ./cmd/migrate.go
+
+build-image:
+	@ echo "Building docker image..."
+	@ docker build \
+		--file ./docker/prod.Dockerfile \
+		--tag hewpao/hewpao-backend \
+		.

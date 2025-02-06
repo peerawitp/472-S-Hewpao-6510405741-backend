@@ -7,7 +7,11 @@ WORKDIR /app
 
 COPY . .
 
+# Build app executable
 RUN make build
+
+# Build db migrations executable
+RUN make build-migrate
 
 # Distribution
 FROM alpine:latest
@@ -21,5 +25,6 @@ WORKDIR /app
 EXPOSE 9090
 
 COPY --from=builder /app/bin/engine /app/
+COPY --from=builder /app/bin/migrate /app/
 
 CMD /app/engine
