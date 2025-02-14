@@ -9,14 +9,27 @@ build-migrate:
 
 up:	dev-env
 
+up-local: dev-env-local dev-air
+
 logs:
 	@ docker logs hewpao-backend-app-1 --follow
 
 dev-env:
 	@ docker compose up
 
-migrate-dev:
+dev-env-local:
+	@ docker compose up -d --build db db-manager
+
+dev-air:
+	@ air
+
+migrate-dev: migrate-inside-container
+
+migrate-dev-local:
 	@ go run ./cmd/migrate.go
+
+migrate-inside-container:
+	@ docker exec -it hewpao-backend-app-1 go run ./cmd/migrate.go 
 
 build-image:
 	@ echo "Building docker image..."
