@@ -12,7 +12,7 @@ func main() {
 	cfg := config.NewConfig()
 	db := bootstrap.NewDB(&cfg)
 
-	if err := db.AutoMigrate(&domain.User{}, &domain.Account{}); err != nil {
+	if err := db.AutoMigrate(&domain.User{}, &domain.Account{}, &domain.ProductRequest{}, &domain.Offer{}); err != nil {
 		log.Fatal(err)
 	}
 
