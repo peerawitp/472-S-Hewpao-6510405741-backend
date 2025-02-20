@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	valid "github.com/go-playground/validator/v10"
+	"github.com/hewpao/hewpao-backend/types"
 )
 
 var validate = valid.New()
@@ -26,7 +27,18 @@ func getCustomErrorMessage(tag string, param string) string {
 	return ""
 }
 
+func CategoryValidator(fl valid.FieldLevel) bool {
+	category := fl.Field().String()
+	switch category {
+	case string(types.Electronics), string(types.Fashion), string(types.Food), string(types.Books), string(types.Other):
+		return true
+	}
+	return false
+}
+
 func ValidateStruct[T any](payload T) *ValidateError {
+	validate.RegisterValidation("category", CategoryValidator)
+
 	err := validate.Struct(payload)
 	errMsg := ""
 	if err != nil {

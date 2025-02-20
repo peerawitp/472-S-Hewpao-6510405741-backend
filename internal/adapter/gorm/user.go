@@ -20,6 +20,14 @@ func NewUserGormRepository(db *gorm.DB) repository.UserRepository {
 	return &UserGormRepository{db: db}
 }
 
+func (u *UserGormRepository) Update(ctx context.Context, user *domain.User) error {
+	result := u.db.Model(&domain.User{}).Where("email = ?", user.Email).Updates(user)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 func (u *UserGormRepository) FindByID(ctx context.Context, id string) (*domain.User, error) {
 	user := domain.User{}
 	if err := u.db.Where("id = ?", id).First(&user).Error; err != nil {

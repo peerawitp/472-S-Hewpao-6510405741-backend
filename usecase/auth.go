@@ -24,13 +24,17 @@ type authService struct {
 	userRepo         repository.UserRepository
 	oauthRepoFactory *repository.OAuthRepositoryFactory
 	cfg              *config.Config
+	minioRepo        repository.S3Repository
+	ctx              context.Context
 }
 
-func NewAuthUsecase(userRepo repository.UserRepository, oauthRepoFactory *repository.OAuthRepositoryFactory, cfg *config.Config) AuthUsecase {
+func NewAuthUsecase(userRepo repository.UserRepository, oauthRepoFactory *repository.OAuthRepositoryFactory, cfg *config.Config, minioRepo repository.S3Repository, ctx context.Context) AuthUsecase {
 	return &authService{
 		userRepo:         userRepo,
 		oauthRepoFactory: oauthRepoFactory,
 		cfg:              cfg,
+		minioRepo:        minioRepo,
+		ctx:              ctx,
 	}
 }
 

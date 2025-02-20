@@ -2,6 +2,8 @@ package domain
 
 import (
 	"time"
+
+	"github.com/hewpao/hewpao-backend/types"
 )
 
 type User struct {
@@ -15,4 +17,11 @@ type User struct {
 	CreatedAt   *time.Time
 	UpdatedAt   *time.Time
 	Accounts    []Account `gorm:"foreignKey:UserID"`
+
+	Role            types.Role       `gorm:"type:varchar(20);default:'User'"`
+	IsVerified      bool             `gorm:"type:boolean;default:false"`
+	ProductRequests []ProductRequest `gorm:"foreignKey:UserID"`
+	Offers          []Offer          `gorm:"foreignKey:UserID"`
+
+	CardImage *string
 }
