@@ -27,23 +27,31 @@ func NewProductRequestHandler(service usecase.ProductRequestUsecase) ProductRequ
 func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 	fileHeaders, err := c.MultipartForm()
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	fileReaders, files, err := util.FileManage(fileHeaders, "images", 15)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	req := dto.CreateProductRequestRequestDTO{}
 	err = c.BodyParser(&req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	validationErr := util.ValidateStruct(req)
 	if validationErr != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(validationErr.Error)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": validationErr.Error,
+		})
 	}
 
 	productRequest := domain.ProductRequest{
@@ -58,7 +66,9 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 
 	err = pr.service.CreateProductRequest(&productRequest, files, fileReaders)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	var deletedAt *time.Time
