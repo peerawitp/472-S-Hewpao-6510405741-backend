@@ -6,12 +6,14 @@ import (
 	"mime/multipart"
 
 	"github.com/hewpao/hewpao-backend/domain"
+	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/repository"
 	"github.com/minio/minio-go/v7"
 )
 
 type ProductRequestUsecase interface {
 	CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error
+	GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error)
 }
 
 type productRequestService struct {
@@ -55,4 +57,28 @@ func (pr *productRequestService) CreateProductRequest(productRequest *domain.Pro
 		return err
 	}
 	return nil
+}
+
+func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error) {
+	productRequest, err := pr.repo.GetDetailByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	res := dto.DetailOfProductRequestResponseDTO{
+		ID:        productRequest.ID,
+		Desc:      productRequest.Desc,
+		Category:  productRequest.Category,
+		Images:    productRequest.Images,
+		Budget:    productRequest.Budget,
+		Quantity:  productRequest.Quantity,
+		UserID:    productRequest.UserID,
+		User:      productRequest.User,
+		Offers:    productRequest.Offers,
+		CreatedAt: productRequest.CreatedAt,
+		UpdatedAt: productRequest.UpdatedAt,
+		DeletedAt: &productRequest.DeletedAt.Time,
+	}
+
+	return &res, nil
 }

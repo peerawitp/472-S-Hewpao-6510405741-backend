@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt"
 	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/usecase"
@@ -12,6 +13,7 @@ import (
 
 type ProductRequestHandler interface {
 	CreateProductRequest(c *fiber.Ctx) error
+	GetDetailByID(c *fiber.Ctx) error
 }
 
 type productRequestHandler struct {
@@ -25,6 +27,10 @@ func NewProductRequestHandler(service usecase.ProductRequestUsecase) ProductRequ
 }
 
 func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
+	claims := c.Locals("user").(jwt.MapClaims)
+
+	userId, _ := claims["id"].(string)
+
 	fileHeaders, err := c.MultipartForm()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -62,6 +68,7 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 		Category: req.Category,
 		Offers:   []domain.Offer{},
 		Images:   []string{},
+		UserID:   &userId,
 	}
 
 	err = pr.service.CreateProductRequest(&productRequest, files, fileReaders)
@@ -96,5 +103,26 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message":         "Product request created sucessfully",
 		"product-request": res,
+	})
+}
+
+func (pr *productRequestHandler) GetDetailByID(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	productRequest, err := pr.service.GetDetailByID(id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":         "success",
+		"product-request": productRequest,
 	})
 }

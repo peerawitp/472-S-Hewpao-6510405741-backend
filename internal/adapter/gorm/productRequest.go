@@ -21,3 +21,12 @@ func (pr *ProductRequestGormRepo) Create(productRequest *domain.ProductRequest) 
 	}
 	return nil
 }
+
+func (pr *ProductRequestGormRepo) GetDetailByID(id int) (*domain.ProductRequest, error) {
+	var productRequest domain.ProductRequest
+	result := pr.db.Preload("User").Preload("Offers").First(&productRequest, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &productRequest, nil
+}

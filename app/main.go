@@ -7,6 +7,7 @@ import (
 	"github.com/hewpao/hewpao-backend/config"
 	"github.com/hewpao/hewpao-backend/ctx"
 	"github.com/hewpao/hewpao-backend/internal/adapter/gorm"
+	"github.com/hewpao/hewpao-backend/internal/adapter/middleware"
 	"github.com/hewpao/hewpao-backend/internal/adapter/oauth"
 	"github.com/hewpao/hewpao-backend/internal/adapter/rest"
 	"github.com/hewpao/hewpao-backend/internal/adapter/s3"
@@ -58,8 +59,9 @@ func main() {
 	authRoute.Post("/login/oauth", authHandler.LoginWithOAuth)
 	authRoute.Post("/register", authHandler.Register)
 
-	productRequestRoute := app.Group("/product-requests")
+	productRequestRoute := app.Group("/product-requests", middleware.AuthMiddleware(&cfg))
 	productRequestRoute.Post("/", productRequestHandler.CreateProductRequest)
+	productRequestRoute.Get("/:id", productRequestHandler.GetDetailByID)
 
 	verifyRoute := app.Group("/verify")
 	verifyRoute.Post("/", verifcationHandler.VerifyWithKYC)

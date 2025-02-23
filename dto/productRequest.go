@@ -32,3 +32,20 @@ type CreateProductRequestResponseDTO struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
+
+type DetailOfProductRequestResponseDTO struct {
+	ID       uint           `json:"id"`
+	Desc     string         `json:"desc"`
+	Images   pq.StringArray `json:"images"`
+	Budget   float64        `json:"budget"`
+	Quantity uint           `json:"quantity"`
+	Category types.Category `json:"category"`
+
+	UserID *string        `json:"userID"`
+	User   *domain.User   `json:"user"`
+	Offers []domain.Offer `json:"offers"`
+
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}

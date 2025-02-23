@@ -6,4 +6,5 @@ import (
 
 type ProductRequestRepository interface {
 	Create(productRequest *domain.ProductRequest) error
+	GetDetailByID(id int) (*domain.ProductRequest, error)
 }
