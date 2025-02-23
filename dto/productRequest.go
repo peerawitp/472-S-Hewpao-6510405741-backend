@@ -49,3 +49,16 @@ type DetailOfProductRequestResponseDTO struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
+
+type PaginationGetProductRequestRequestDTO struct {
+	Page  int `query:"page"`
+	Limit int `query:"limit"`
+}
+
+type PaginationGetProductRequestResponse[T any] struct {
+	Data       []T   `json:"data"`
+	Page       int   `json:"page"`
+	Limit      int   `json:"limit"`
+	TotalRows  int64 `json:"total_rows"`
+	TotalPages int   `json:"total_pages"`
+}

@@ -60,6 +60,7 @@ func main() {
 	authRoute.Post("/register", authHandler.Register)
 
 	productRequestRoute := app.Group("/product-requests", middleware.AuthMiddleware(&cfg))
+	productRequestRoute.Get("/", productRequestHandler.GetPaginatedProductRequests)
 	productRequestRoute.Post("/", productRequestHandler.CreateProductRequest)
 	productRequestRoute.Get("/:id", productRequestHandler.GetDetailByID)
 

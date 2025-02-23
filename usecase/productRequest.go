@@ -14,6 +14,7 @@ import (
 type ProductRequestUsecase interface {
 	CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error
 	GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error)
+	GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[domain.ProductRequest], error)
 }
 
 type productRequestService struct {
@@ -60,7 +61,7 @@ func (pr *productRequestService) CreateProductRequest(productRequest *domain.Pro
 }
 
 func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error) {
-	productRequest, err := pr.repo.GetDetailByID(id)
+	productRequest, err := pr.repo.FindByID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +79,25 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 		CreatedAt: productRequest.CreatedAt,
 		UpdatedAt: productRequest.UpdatedAt,
 		DeletedAt: &productRequest.DeletedAt.Time,
+	}
+
+	return &res, nil
+}
+
+func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[domain.ProductRequest], error) {
+	productRequests, totalRows, err := pr.repo.FindPaginatedProductRequests(page, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	totalPages := (int(totalRows) + limit - 1) / limit
+
+	res := dto.PaginationGetProductRequestResponse[domain.ProductRequest]{
+		Data:       productRequests,
+		Page:       page,
+		Limit:      limit,
+		TotalRows:  totalRows,
+		TotalPages: totalPages,
 	}
 
 	return &res, nil

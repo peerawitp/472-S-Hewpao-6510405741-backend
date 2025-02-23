@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +15,7 @@ import (
 type ProductRequestHandler interface {
 	CreateProductRequest(c *fiber.Ctx) error
 	GetDetailByID(c *fiber.Ctx) error
+	GetPaginatedProductRequests(c *fiber.Ctx) error
 }
 
 type productRequestHandler struct {
@@ -125,4 +127,24 @@ func (pr *productRequestHandler) GetDetailByID(c *fiber.Ctx) error {
 		"message":         "success",
 		"product-request": productRequest,
 	})
+}
+
+func (pr *productRequestHandler) GetPaginatedProductRequests(c *fiber.Ctx) error {
+	page, err := strconv.Atoi(c.Query("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit", "15"))
+	if err != nil || limit < 1 {
+		limit = 15
+	}
+
+	productRequest, err := pr.service.GetPaginatedProductRequests(page, limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(productRequest)
 }

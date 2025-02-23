@@ -22,11 +22,22 @@ func (pr *ProductRequestGormRepo) Create(productRequest *domain.ProductRequest) 
 	return nil
 }
 
-func (pr *ProductRequestGormRepo) GetDetailByID(id int) (*domain.ProductRequest, error) {
+func (pr *ProductRequestGormRepo) FindByID(id int) (*domain.ProductRequest, error) {
 	var productRequest domain.ProductRequest
 	result := pr.db.Preload("User").Preload("Offers").First(&productRequest, id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &productRequest, nil
+}
+
+func (pr *ProductRequestGormRepo) FindPaginatedProductRequests(page, limit int) ([]domain.ProductRequest, int64, error) {
+	var productRequests []domain.ProductRequest
+	var total int64
+	result := pr.db.Offset((page - 1) * limit).Limit(limit).Find(&productRequests)
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+	pr.db.Model(&domain.ProductRequest{}).Count(&total)
+	return productRequests, total, nil
 }

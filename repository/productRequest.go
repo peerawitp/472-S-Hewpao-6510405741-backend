@@ -6,5 +6,6 @@ import (
 
 type ProductRequestRepository interface {
 	Create(productRequest *domain.ProductRequest) error
-	GetDetailByID(id int) (*domain.ProductRequest, error)
+	FindByID(id int) (*domain.ProductRequest, error)
+	FindPaginatedProductRequests(page, limit int) ([]domain.ProductRequest, int64, error)
 }
