@@ -15,6 +15,7 @@ import (
 type ProductRequestHandler interface {
 	CreateProductRequest(c *fiber.Ctx) error
 	GetDetailByID(c *fiber.Ctx) error
+	GetBuyerProductRequestsByUserID(c *fiber.Ctx) error
 	GetPaginatedProductRequests(c *fiber.Ctx) error
 }
 
@@ -147,4 +148,22 @@ func (pr *productRequestHandler) GetPaginatedProductRequests(c *fiber.Ctx) error
 		})
 	}
 	return c.JSON(productRequest)
+}
+
+func (pr *productRequestHandler) GetBuyerProductRequestsByUserID(c *fiber.Ctx) error {
+	claims := c.Locals("user").(jwt.MapClaims)
+
+	userId, _ := claims["id"].(string)
+
+	productRequests, err := pr.service.GetBuyerProductRequestsByUserID(userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":          "success",
+		"product-requests": productRequests,
+	})
 }

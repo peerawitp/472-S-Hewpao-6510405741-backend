@@ -31,6 +31,15 @@ func (pr *ProductRequestGormRepo) FindByID(id int) (*domain.ProductRequest, erro
 	return &productRequest, nil
 }
 
+func (pr *ProductRequestGormRepo) FindByUserID(id string) ([]domain.ProductRequest, error) {
+	var productRequests []domain.ProductRequest
+	result := pr.db.Where("user_id = ?", id).Find(&productRequests)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return productRequests, nil
+}
+
 func (pr *ProductRequestGormRepo) FindPaginatedProductRequests(page, limit int) ([]domain.ProductRequest, int64, error) {
 	var productRequests []domain.ProductRequest
 	var total int64

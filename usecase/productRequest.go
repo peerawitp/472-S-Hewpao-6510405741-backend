@@ -14,6 +14,7 @@ import (
 type ProductRequestUsecase interface {
 	CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error
 	GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error)
+	GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error)
 	GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[domain.ProductRequest], error)
 }
 
@@ -82,6 +83,36 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 	}
 
 	return &res, nil
+}
+
+func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) {
+	productRequests, err := pr.repo.FindByUserID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	res := []dto.DetailOfProductRequestResponseDTO{}
+
+	for _, productRequest := range productRequests {
+		productRequestRes := dto.DetailOfProductRequestResponseDTO{
+			ID:        productRequest.ID,
+			Desc:      productRequest.Desc,
+			Category:  productRequest.Category,
+			Images:    productRequest.Images,
+			Budget:    productRequest.Budget,
+			Quantity:  productRequest.Quantity,
+			UserID:    productRequest.UserID,
+			User:      productRequest.User,
+			Offers:    productRequest.Offers,
+			CreatedAt: productRequest.CreatedAt,
+			UpdatedAt: productRequest.UpdatedAt,
+			DeletedAt: &productRequest.DeletedAt.Time,
+		}
+
+		res = append(res, productRequestRes)
+	}
+
+	return res, nil
 }
 
 func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[domain.ProductRequest], error) {

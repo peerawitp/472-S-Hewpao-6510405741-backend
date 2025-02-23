@@ -60,9 +60,10 @@ func main() {
 	authRoute.Post("/register", authHandler.Register)
 
 	productRequestRoute := app.Group("/product-requests", middleware.AuthMiddleware(&cfg))
-	productRequestRoute.Get("/", productRequestHandler.GetPaginatedProductRequests)
 	productRequestRoute.Post("/", productRequestHandler.CreateProductRequest)
-	productRequestRoute.Get("/:id", productRequestHandler.GetDetailByID)
+	productRequestRoute.Get("/get", productRequestHandler.GetPaginatedProductRequests)
+	productRequestRoute.Get("/get/:id", productRequestHandler.GetDetailByID)
+	productRequestRoute.Get("/get-buyer", productRequestHandler.GetBuyerProductRequestsByUserID)
 
 	verifyRoute := app.Group("/verify")
 	verifyRoute.Post("/", verifcationHandler.VerifyWithKYC)
