@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"io"
+	"log"
 	"mime/multipart"
 
 	"github.com/hewpao/hewpao-backend/domain"
@@ -15,7 +16,7 @@ type ProductRequestUsecase interface {
 	CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error
 	GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error)
 	GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error)
-	GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[domain.ProductRequest], error)
+	GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error)
 }
 
 type productRequestService struct {
@@ -75,7 +76,6 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 		Budget:    productRequest.Budget,
 		Quantity:  productRequest.Quantity,
 		UserID:    productRequest.UserID,
-		User:      productRequest.User,
 		Offers:    productRequest.Offers,
 		CreatedAt: productRequest.CreatedAt,
 		UpdatedAt: productRequest.UpdatedAt,
@@ -102,7 +102,6 @@ func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]d
 			Budget:    productRequest.Budget,
 			Quantity:  productRequest.Quantity,
 			UserID:    productRequest.UserID,
-			User:      productRequest.User,
 			Offers:    productRequest.Offers,
 			CreatedAt: productRequest.CreatedAt,
 			UpdatedAt: productRequest.UpdatedAt,
@@ -115,16 +114,36 @@ func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]d
 	return res, nil
 }
 
-func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[domain.ProductRequest], error) {
+func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error) {
 	productRequests, totalRows, err := pr.repo.FindPaginatedProductRequests(page, limit)
+	log.Println(productRequests)
 	if err != nil {
 		return nil, err
 	}
 
 	totalPages := (int(totalRows) + limit - 1) / limit
 
-	res := dto.PaginationGetProductRequestResponse[domain.ProductRequest]{
-		Data:       productRequests,
+	var dest []dto.DetailOfProductRequestResponseDTO
+
+	for _, productRequest := range productRequests {
+		productRequestRes := dto.DetailOfProductRequestResponseDTO{
+			ID:        productRequest.ID,
+			Desc:      productRequest.Desc,
+			Category:  productRequest.Category,
+			Images:    productRequest.Images,
+			Budget:    productRequest.Budget,
+			Quantity:  productRequest.Quantity,
+			UserID:    productRequest.UserID,
+			Offers:    productRequest.Offers,
+			CreatedAt: productRequest.CreatedAt,
+			UpdatedAt: productRequest.UpdatedAt,
+			DeletedAt: &productRequest.DeletedAt.Time,
+		}
+		dest = append(dest, productRequestRes)
+	}
+
+	res := dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO]{
+		Data:       dest,
 		Page:       page,
 		Limit:      limit,
 		TotalRows:  totalRows,

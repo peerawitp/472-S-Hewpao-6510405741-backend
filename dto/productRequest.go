@@ -24,9 +24,7 @@ type CreateProductRequestResponseDTO struct {
 	Quantity uint           `json:"quantity"`
 	Category types.Category `json:"category"`
 
-	UserID *string        `json:"userID"`
-	User   *domain.User   `json:"user"`
-	Offers []domain.Offer `json:"offers"`
+	UserID *string `json:"userID"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
@@ -42,8 +40,9 @@ type DetailOfProductRequestResponseDTO struct {
 	Category types.Category `json:"category"`
 
 	UserID *string        `json:"userID"`
-	User   *domain.User   `json:"user"`
 	Offers []domain.Offer `json:"offers"`
+
+	SelectedOffer *domain.Offer `json:"selected_offer"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`

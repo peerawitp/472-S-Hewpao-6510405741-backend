@@ -37,6 +37,7 @@ func (pr *ProductRequestGormRepo) FindByUserID(id string) ([]domain.ProductReque
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
 	return productRequests, nil
 }
 

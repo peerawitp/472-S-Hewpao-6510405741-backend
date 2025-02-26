@@ -19,6 +19,6 @@ type ProductRequest struct {
 	User   *User
 	Offers []Offer `gorm:"foreignKey:ProductRequestID"`
 
-	TravelerID *string
-	Traveler   *User
+	SelectedOfferID *uint
+	SelectedOffer   *Offer
 }

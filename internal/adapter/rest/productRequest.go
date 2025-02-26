@@ -95,8 +95,6 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 		Category: productRequest.Category,
 
 		UserID: productRequest.UserID,
-		User:   productRequest.User,
-		Offers: productRequest.Offers,
 
 		CreatedAt: productRequest.CreatedAt,
 		UpdatedAt: productRequest.UpdatedAt,
