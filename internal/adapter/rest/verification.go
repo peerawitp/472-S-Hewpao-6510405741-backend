@@ -2,6 +2,7 @@ package rest
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt"
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/usecase"
 
@@ -25,10 +26,19 @@ func NewVerificationHandler(service usecase.VerificationUsecase) VerificationHan
 }
 
 func (v *verificationHandler) VerifyWithKYC(c *fiber.Ctx) error {
-	token := c.Get("Authorization")
-	if token == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "A valid authorization is required",
+	claims := c.Locals("user").(jwt.MapClaims)
+	userEmail, _ := claims["email"].(string)
+
+	req := dto.VerifyWithKYCDTO{}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "some request fields are required",
+		})
+	}
+	validationErr := util.ValidateStruct(req)
+	if validationErr != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": validationErr.Error,
 		})
 	}
 
@@ -46,7 +56,7 @@ func (v *verificationHandler) VerifyWithKYC(c *fiber.Ctx) error {
 		})
 	}
 
-	err = v.service.VerifyWithKYC(fileReaders[0], files[0], token)
+	err = v.service.VerifyWithKYC(fileReaders[0], files[0], userEmail)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -59,6 +69,9 @@ func (v *verificationHandler) VerifyWithKYC(c *fiber.Ctx) error {
 }
 
 func (v *verificationHandler) GetVerificationInfo(c *fiber.Ctx) error {
+	claims := c.Locals("user").(jwt.MapClaims)
+	instructorEmail, _ := claims["email"].(string)
+
 	userEmail := c.Params("email")
 	if userEmail == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -66,16 +79,9 @@ func (v *verificationHandler) GetVerificationInfo(c *fiber.Ctx) error {
 		})
 	}
 
-	token := c.Get("Authorization")
-	if token == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "A valid authorization header is required",
-		})
-	}
-
 	information := dto.GetUserVerificationDTO{}
 
-	err := v.service.GetVerificationInfo(userEmail, token, &information)
+	err := v.service.GetVerificationInfo(userEmail, instructorEmail, &information)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
@@ -89,17 +95,13 @@ func (v *verificationHandler) GetVerificationInfo(c *fiber.Ctx) error {
 }
 
 func (v *verificationHandler) UpdateVerificationInfo(c *fiber.Ctx) error {
+	claims := c.Locals("user").(jwt.MapClaims)
+	instructorEmail, _ := claims["email"].(string)
+
 	userEmail := c.Params("email")
 	if userEmail == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Email param is missing",
-		})
-	}
-
-	token := c.Get("Authorization")
-	if token == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "A valid authorization is required",
 		})
 	}
 
@@ -111,7 +113,7 @@ func (v *verificationHandler) UpdateVerificationInfo(c *fiber.Ctx) error {
 		})
 	}
 
-	err = v.service.UpdateVerificationInfo(&req, userEmail, token)
+	err = v.service.UpdateVerificationInfo(&req, userEmail, instructorEmail)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

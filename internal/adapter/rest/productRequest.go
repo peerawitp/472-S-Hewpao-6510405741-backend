@@ -31,7 +31,6 @@ func NewProductRequestHandler(service usecase.ProductRequestUsecase) ProductRequ
 
 func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 	claims := c.Locals("user").(jwt.MapClaims)
-
 	userId, _ := claims["id"].(string)
 
 	fileHeaders, err := c.MultipartForm()

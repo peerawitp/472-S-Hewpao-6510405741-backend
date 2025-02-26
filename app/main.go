@@ -65,7 +65,7 @@ func main() {
 	productRequestRoute.Get("/get/:id", productRequestHandler.GetDetailByID)
 	productRequestRoute.Get("/get-buyer", productRequestHandler.GetBuyerProductRequestsByUserID)
 
-	verifyRoute := app.Group("/verify")
+	verifyRoute := app.Group("/verify", middleware.AuthMiddleware(&cfg))
 	verifyRoute.Post("/", verifcationHandler.VerifyWithKYC)
 	verifyRoute.Get("/:email", verifcationHandler.GetVerificationInfo)
 	verifyRoute.Post("/set/:email", verifcationHandler.UpdateVerificationInfo)

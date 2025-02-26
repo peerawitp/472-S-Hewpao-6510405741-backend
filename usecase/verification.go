@@ -10,13 +10,12 @@ import (
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/repository"
 	"github.com/hewpao/hewpao-backend/types"
-	"github.com/hewpao/hewpao-backend/util"
 )
 
 type VerificationUsecase interface {
-	VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, token string) error
-	GetVerificationInfo(userEmail string, token string, info *dto.GetUserVerificationDTO) error
-	UpdateVerificationInfo(req *dto.UpdateUserVerificationDTO, userEmail string, token string) error
+	VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, email string) error
+	GetVerificationInfo(userEmail string, instructorEmail string, info *dto.GetUserVerificationDTO) error
+	UpdateVerificationInfo(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error
 }
 
 type verificationService struct {
@@ -35,13 +34,8 @@ func NewVerificationService(minioRepo repository.S3Repository, ctx context.Conte
 	}
 }
 
-func (v *verificationService) UpdateVerificationInfo(req *dto.UpdateUserVerificationDTO, userEmail string, token string) error {
-	instructorEmail, err := util.JwtDecap(token, v.cfg, v.ctx)
-	if err != nil {
-		return err
-	}
-
-	instructor, err := v.userRepo.FindByEmail(v.ctx, *instructorEmail)
+func (v *verificationService) UpdateVerificationInfo(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error {
+	instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
 	if err != nil {
 		return err
 	}
@@ -64,12 +58,8 @@ func (v *verificationService) UpdateVerificationInfo(req *dto.UpdateUserVerifica
 	return nil
 }
 
-func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, token string) error {
-	email, err := util.JwtDecap(token, v.cfg, v.ctx)
-	if err != nil {
-		return err
-	}
-	user, err := v.userRepo.FindByEmail(v.ctx, *email)
+func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, email string) error {
+	user, err := v.userRepo.FindByEmail(v.ctx, email)
 	if err != nil {
 		return err
 	}
@@ -86,13 +76,8 @@ func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.Fi
 	return nil
 }
 
-func (v *verificationService) GetVerificationInfo(userEmail string, token string, info *dto.GetUserVerificationDTO) error {
-	instructorEmail, err := util.JwtDecap(token, v.cfg, v.ctx)
-	if err != nil {
-		return err
-	}
-
-	instructor, err := v.userRepo.FindByEmail(v.ctx, *instructorEmail)
+func (v *verificationService) GetVerificationInfo(userEmail string, instructorEmail string, info *dto.GetUserVerificationDTO) error {
+	instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
 	if err != nil {
 		return err
 	}

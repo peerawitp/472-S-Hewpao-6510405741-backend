@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/hewpao/hewpao-backend/types"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/hewpao/hewpao-backend/types"
+)
 
 type GetUserVerificationDTO struct {
 	Email       string     `json:"email"`
@@ -11,6 +14,10 @@ type GetUserVerificationDTO struct {
 	IsVerified  bool       `json:"is_verified"`
 	CardImage   *string    `json:"card_image"`
 	Role        types.Role `json:"role"`
+}
+
+type VerifyWithKYCDTO struct {
+	CardImage *fiber.FormFile `form:"card-image" validate:"required"`
 }
 
 type UpdateUserVerificationDTO struct {
