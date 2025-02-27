@@ -39,6 +39,11 @@ func main() {
 	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx)
 	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase)
 
+	transactionRepo := gorm.NewTransactionRepository(db)
+	transactionUsecase := usecase.NewTransactionService(transactionRepo)
+	transactionHandler := rest.NewTransactionHandler(*transactionUsecase)
+
+
 	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo)
 	verifcationHandler := rest.NewVerificationHandler(verifcationUsecase)
 
@@ -76,6 +81,10 @@ func main() {
 
 	offerRoute := app.Group("/offers", middleware.AuthMiddleware(&cfg))
 	offerRoute.Post("/", offerHandler.CreateOffer)
+
+	transactionRoute := app.Group("/transactions", middleware.AuthMiddleware(&cfg))
+	transactionRoute.Post("/", transactionHandler.CreateTransaction)
+	transactionRoute.Get("/:id", transactionHandler.GetTransactionByID)
 
 	app.Listen(":9090")
 }
