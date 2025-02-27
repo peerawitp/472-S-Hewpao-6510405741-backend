@@ -42,6 +42,10 @@ func main() {
 	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo)
 	verifcationHandler := rest.NewVerificationHandler(verifcationUsecase)
 
+	offerRepo := gorm.NewOfferGormRepo(db)
+	offerUsecase := usecase.NewOfferService(offerRepo, productRequestRepo, userRepo, ctx)
+	offerHandler := rest.NewOfferHandler(offerUsecase)
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("hewpao is running 🚀")
 	})
@@ -69,6 +73,9 @@ func main() {
 	verifyRoute.Post("/", verifcationHandler.VerifyWithKYC)
 	verifyRoute.Get("/:email", verifcationHandler.GetVerificationInfo)
 	verifyRoute.Post("/set/:email", verifcationHandler.UpdateVerificationInfo)
+
+	offerRoute := app.Group("/offers", middleware.AuthMiddleware(&cfg))
+	offerRoute.Post("/", offerHandler.CreateOffer)
 
 	app.Listen(":9090")
 }
