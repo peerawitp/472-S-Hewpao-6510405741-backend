@@ -8,6 +8,20 @@ import (
 	"github.com/lib/pq"
 )
 
+type UpdateProductRequestDTO struct {
+	Name     string         `json:"name"`
+	Desc     string         `json:"desc"`
+	Budget   float64        `json:"budget" validate:"gt=0"`
+	Quantity uint           `json:"quantity" validate:"gt=0"`
+	Category types.Category `json:"category" validate:"category"`
+
+	SelectedOfferID uint `json:"selected_offer_id"`
+}
+
+type UpdateProductRequestStatusDTO struct {
+	DeliveryStatus types.DeliveryStatus `json:"delivery_status" validate:"delivery-status"`
+}
+
 type CreateProductRequestRequestDTO struct {
 	Name     string         `json:"name" validate:"required"`
 	Desc     string         `json:"desc" validate:"required"`

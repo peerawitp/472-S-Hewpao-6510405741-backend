@@ -36,8 +36,18 @@ func CategoryValidator(fl valid.FieldLevel) bool {
 	return false
 }
 
+func DeliveryStatusValidator(fl valid.FieldLevel) bool {
+	deliveryStatyus := fl.Field().String()
+	switch deliveryStatyus {
+	case string(types.Pending), string(types.Purchased), string(types.PickedUp), string(types.OutForDelivery), string(types.Cancel), string(types.Returned), string(types.Refunded), string(types.Opening), string(types.Delivered):
+		return true
+	}
+	return false
+}
+
 func ValidateStruct[T any](payload T) *ValidateError {
 	validate.RegisterValidation("category", CategoryValidator)
+	validate.RegisterValidation("delivery-status", DeliveryStatusValidator)
 
 	err := validate.Struct(payload)
 	errMsg := ""

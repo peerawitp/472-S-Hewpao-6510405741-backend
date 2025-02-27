@@ -35,8 +35,9 @@ func main() {
 	authUsecase := usecase.NewAuthUsecase(userRepo, &oauthRepoFactory, &cfg, minioRepo, ctx)
 	authHandler := rest.NewAuthHandler(authUsecase)
 
+	offerRepo := gorm.NewOfferGormRepo(db)
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
-	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx)
+	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo)
 	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase)
 
 	transactionRepo := gorm.NewTransactionRepository(db)
@@ -47,7 +48,6 @@ func main() {
 	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo)
 	verifcationHandler := rest.NewVerificationHandler(verifcationUsecase)
 
-	offerRepo := gorm.NewOfferGormRepo(db)
 	offerUsecase := usecase.NewOfferService(offerRepo, productRequestRepo, userRepo, ctx)
 	offerHandler := rest.NewOfferHandler(offerUsecase)
 
@@ -70,6 +70,8 @@ func main() {
 
 	productRequestRoute := app.Group("/product-requests", middleware.AuthMiddleware(&cfg))
 	productRequestRoute.Post("/", productRequestHandler.CreateProductRequest)
+	productRequestRoute.Put("/:id", productRequestHandler.UpdateProductRequest)
+	productRequestRoute.Put("/status/:id", productRequestHandler.UpdateProductRequestStatus)
 	productRequestRoute.Get("/get", productRequestHandler.GetPaginatedProductRequests)
 	productRequestRoute.Get("/get/:id", productRequestHandler.GetDetailByID)
 	productRequestRoute.Get("/get-buyer", productRequestHandler.GetBuyerProductRequestsByUserID)

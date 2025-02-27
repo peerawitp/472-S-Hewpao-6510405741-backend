@@ -14,6 +14,14 @@ func NewProductRequestGormRepo(db *gorm.DB) repository.ProductRequestRepository 
 	return &ProductRequestGormRepo{db: db}
 }
 
+func (pr *ProductRequestGormRepo) Update(productRquest *domain.ProductRequest) error {
+	result := pr.db.Model(&domain.ProductRequest{}).Where("id = ?", productRquest.ID).Updates(productRquest)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 func (pr *ProductRequestGormRepo) Create(productRequest *domain.ProductRequest) error {
 	result := pr.db.Create(&productRequest)
 	if result.Error != nil {

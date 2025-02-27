@@ -17,6 +17,8 @@ type ProductRequestHandler interface {
 	GetDetailByID(c *fiber.Ctx) error
 	GetBuyerProductRequestsByUserID(c *fiber.Ctx) error
 	GetPaginatedProductRequests(c *fiber.Ctx) error
+	UpdateProductRequest(c *fiber.Ctx) error
+	UpdateProductRequestStatus(c *fiber.Ctx) error
 }
 
 type productRequestHandler struct {
@@ -29,9 +31,87 @@ func NewProductRequestHandler(service usecase.ProductRequestUsecase) ProductRequ
 	}
 }
 
+func (pr *productRequestHandler) UpdateProductRequestStatus(c *fiber.Ctx) error {
+	claims := c.Locals("user").(jwt.MapClaims)
+	userID, _ := claims["id"].(string)
+
+	req := dto.UpdateProductRequestStatusDTO{}
+
+	err := c.BodyParser(&req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	validationErr := util.ValidateStruct(req)
+	if validationErr != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": validationErr.Error,
+		})
+	}
+
+	prID, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	err = pr.service.UpdateProductRequestStatus(&req, prID, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Product Request status successfully updated",
+	})
+}
+
+func (pr *productRequestHandler) UpdateProductRequest(c *fiber.Ctx) error {
+	claims := c.Locals("user").(jwt.MapClaims)
+	userID, _ := claims["id"].(string)
+
+	req := dto.UpdateProductRequestDTO{}
+
+	err := c.BodyParser(&req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	validationErr := util.ValidateStruct(req)
+	if validationErr != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": validationErr.Error,
+		})
+	}
+
+	prID, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	err = pr.service.UpdateProductRequest(&req, prID, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Product Request successfully updated",
+	})
+}
+
 func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 	claims := c.Locals("user").(jwt.MapClaims)
-	userId, _ := claims["id"].(string)
+	userID, _ := claims["id"].(string)
 
 	fileHeaders, err := c.MultipartForm()
 	if err != nil {
@@ -70,7 +150,7 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 		Category: req.Category,
 		Offers:   []domain.Offer{},
 		Images:   []string{},
-		UserID:   &userId,
+		UserID:   &userID,
 	}
 
 	err = pr.service.CreateProductRequest(&productRequest, files, fileReaders)

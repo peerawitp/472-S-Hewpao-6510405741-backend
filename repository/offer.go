@@ -6,4 +6,5 @@ import (
 
 type OfferRepository interface {
 	Create(req *domain.Offer) error
+	GetByID(req *domain.Offer) error
 }

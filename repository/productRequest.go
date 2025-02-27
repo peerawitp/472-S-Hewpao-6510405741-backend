@@ -9,4 +9,5 @@ type ProductRequestRepository interface {
 	FindByID(id int) (*domain.ProductRequest, error)
 	FindByUserID(id string) ([]domain.ProductRequest, error)
 	FindPaginatedProductRequests(page, limit int) ([]domain.ProductRequest, int64, error)
+	Update(productRequest *domain.ProductRequest) error
 }

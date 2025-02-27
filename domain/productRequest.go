@@ -21,4 +21,6 @@ type ProductRequest struct {
 
 	SelectedOfferID *uint
 	SelectedOffer   *Offer
+
+	DeliveryStatus types.DeliveryStatus `gorm:"type:varchar(20);default:'Opening'"`
 }
