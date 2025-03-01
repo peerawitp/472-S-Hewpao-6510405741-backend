@@ -22,5 +22,7 @@ type ProductRequest struct {
 	SelectedOfferID *uint
 	SelectedOffer   *Offer
 
+	Transactions []Transaction `gorm:"foreignKey:ProductRequestID"`
+
 	DeliveryStatus types.DeliveryStatus `gorm:"type:varchar(20);default:'Opening'"`
 }

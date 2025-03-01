@@ -161,17 +161,18 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 	}
 
 	res := dto.DetailOfProductRequestResponseDTO{
-		ID:        productRequest.ID,
-		Desc:      productRequest.Desc,
-		Category:  productRequest.Category,
-		Images:    productRequest.Images,
-		Budget:    productRequest.Budget,
-		Quantity:  productRequest.Quantity,
-		UserID:    productRequest.UserID,
-		Offers:    productRequest.Offers,
-		CreatedAt: productRequest.CreatedAt,
-		UpdatedAt: productRequest.UpdatedAt,
-		DeletedAt: &productRequest.DeletedAt.Time,
+		ID:           productRequest.ID,
+		Desc:         productRequest.Desc,
+		Category:     productRequest.Category,
+		Images:       productRequest.Images,
+		Budget:       productRequest.Budget,
+		Quantity:     productRequest.Quantity,
+		UserID:       productRequest.UserID,
+		Offers:       productRequest.Offers,
+		Transactions: productRequest.Transactions,
+		CreatedAt:    productRequest.CreatedAt,
+		UpdatedAt:    productRequest.UpdatedAt,
+		DeletedAt:    &productRequest.DeletedAt.Time,
 	}
 
 	return &res, nil

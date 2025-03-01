@@ -17,4 +17,6 @@ var (
 	ErrPermissionDenied     = errors.New("no permssion")
 	ErrParamsMissing        = errors.New("some params are missing")
 	ErrCouldNotUpdateStatus = errors.New("could not update status yet")
+
+	ErrProductRequestAlreadyPaid = errors.New("product request already paid")
 )

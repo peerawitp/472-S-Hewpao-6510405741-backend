@@ -58,6 +58,8 @@ type DetailOfProductRequestResponseDTO struct {
 
 	SelectedOffer *domain.Offer `json:"selected_offer"`
 
+	Transactions []domain.Transaction `json:"transactions"`
+
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
