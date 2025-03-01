@@ -15,9 +15,13 @@ require (
 	gorm.io/gorm v1.25.12
 )
 
-require github.com/stripe/stripe-go/v81 v81.4.0 // indirect
-
 require (
+	github.com/iancoleman/strcase v0.3.0 // indirect
+	github.com/morkid/gocache v1.0.0 // indirect
+	github.com/morkid/paginate v1.1.10 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
+  github.com/stripe/stripe-go/v81 v81.4.0 // indirect
 	cloud.google.com/go/auth v0.14.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect

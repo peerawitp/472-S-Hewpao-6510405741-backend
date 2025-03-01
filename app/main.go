@@ -1,11 +1,14 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/hewpao/hewpao-backend/bootstrap"
 	"github.com/hewpao/hewpao-backend/config"
 	"github.com/hewpao/hewpao-backend/ctx"
+	"github.com/hewpao/hewpao-backend/internal/adapter/email"
 	"github.com/hewpao/hewpao-backend/internal/adapter/gorm"
 	"github.com/hewpao/hewpao-backend/internal/adapter/middleware"
 	"github.com/hewpao/hewpao-backend/internal/adapter/oauth"
@@ -15,6 +18,7 @@ import (
 	"github.com/hewpao/hewpao-backend/internal/adapter/s3"
 	"github.com/hewpao/hewpao-backend/repository"
 	"github.com/hewpao/hewpao-backend/usecase"
+	"gopkg.in/gomail.v2"
 )
 
 func main() {
@@ -23,6 +27,8 @@ func main() {
 	db := bootstrap.NewDB(&cfg)
 	ctx := ctx.ProvideContext()
 	minio := bootstrap.ProvideMinIOClient(ctx, &cfg)
+
+	message := gomail.NewMessage()
 
 	app.Use(logger.New())
 
@@ -37,12 +43,18 @@ func main() {
 	userRepo := gorm.NewUserGormRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 
+	gmailRepo, err := email.NewGmailEmailNotificationRepo(message, &cfg)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	gmailNotificationUsecase := usecase.NewNotificationUsecase(gmailRepo, userRepo, ctx, message)
+
 	authUsecase := usecase.NewAuthUsecase(userRepo, &oauthRepoFactory, &cfg, minioRepo, ctx)
 	authHandler := rest.NewAuthHandler(authUsecase)
 
 	offerRepo := gorm.NewOfferGormRepo(db)
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
-	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo)
+	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, gmailNotificationUsecase, &cfg)
 	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase)
 
 	transactionRepo := gorm.NewTransactionRepository(db)
