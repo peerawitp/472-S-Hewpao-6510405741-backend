@@ -1,8 +1,11 @@
 package rest
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
+	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/usecase"
 
@@ -27,18 +30,12 @@ func NewVerificationHandler(service usecase.VerificationUsecase) VerificationHan
 
 func (v *verificationHandler) VerifyWithKYC(c *fiber.Ctx) error {
 	claims := c.Locals("user").(jwt.MapClaims)
-	userEmail, _ := claims["email"].(string)
+	userID, _ := claims["id"].(string)
 
 	req := dto.VerifyWithKYCDTO{}
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "some request fields are required",
-		})
-	}
-	validationErr := util.ValidateStruct(req)
-	if validationErr != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": validationErr.Error,
 		})
 	}
 
@@ -56,7 +53,7 @@ func (v *verificationHandler) VerifyWithKYC(c *fiber.Ctx) error {
 		})
 	}
 
-	err = v.service.VerifyWithKYC(fileReaders[0], files[0], userEmail)
+	err = v.service.VerifyWithKYC(fileReaders[0], files[0], userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -72,16 +69,22 @@ func (v *verificationHandler) GetVerificationInfo(c *fiber.Ctx) error {
 	claims := c.Locals("user").(jwt.MapClaims)
 	instructorEmail, _ := claims["email"].(string)
 
-	userEmail := c.Params("email")
-	if userEmail == "" {
+	verificationIDStr := c.Params("verification_id")
+	if verificationIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Email param is missing",
+			"error": "Verification ID param is missing",
 		})
 	}
 
-	information := dto.GetUserVerificationDTO{}
+	verificationID, err := strconv.ParseUint(verificationIDStr, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	information := domain.Verification{}
 
-	err := v.service.GetVerificationInfo(userEmail, instructorEmail, &information)
+	err = v.service.GetVerificationInfo(instructorEmail, &information, uint(verificationID))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
@@ -110,6 +113,13 @@ func (v *verificationHandler) UpdateVerificationInfo(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
+		})
+	}
+
+	validationErr := util.ValidateStruct(req)
+	if validationErr != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": validationErr.Error,
 		})
 	}
 
