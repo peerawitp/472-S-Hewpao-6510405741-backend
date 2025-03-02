@@ -13,7 +13,6 @@ type Transaction struct {
 	UserID              string              `gorm:"index;not null"`
 	Amount              float64             `gorm:"not null"`
 	Currency            string              `gorm:"size:3;not null;check:currency IN ('THB')"`
-	Type                string              `gorm:"size:10;not null"`
 	ThirdPartyGateway   string              `gorm:"size:50;not null"`
 	ThirdPartyPaymentID *string             `gorm:"size:255"`
 	ProductRequestID    *uint               `gorm:"index"`

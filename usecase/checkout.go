@@ -62,7 +62,6 @@ func (c *checkoutService) CheckoutWithPaymentGateway(ctx context.Context, userID
 		UserID:              userID,
 		Amount:              productRequest.Budget,
 		Currency:            "THB",
-		Type:                "Income",
 		ThirdPartyPaymentID: &payment.PaymentID,
 		ThirdPartyGateway:   req.PaymentGateway,
 		ProductRequestID:    &productRequest.ID,

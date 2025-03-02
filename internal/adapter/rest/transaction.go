@@ -30,7 +30,7 @@ func (th *transactionHandler) CreateTransaction(c *fiber.Ctx) error {
 		})
 	}
 
-	transaction, err := th.service.CreateTransaction(req.UserID, req.Amount, req.Currency, req.Type)
+	transaction, err := th.service.CreateTransaction(req.UserID, req.Amount, req.Currency)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
