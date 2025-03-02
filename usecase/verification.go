@@ -3,9 +3,11 @@ package usecase
 import (
 	"context"
 	"io"
+	"log"
 	"mime/multipart"
 
 	"github.com/hewpao/hewpao-backend/config"
+	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/domain/exception"
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/repository"
@@ -13,24 +15,26 @@ import (
 )
 
 type VerificationUsecase interface {
-	VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, email string) error
-	GetVerificationInfo(userEmail string, instructorEmail string, info *dto.GetUserVerificationDTO) error
+	VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string) error
+	GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error
 	UpdateVerificationInfo(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error
 }
 
 type verificationService struct {
-	minioRepo repository.S3Repository
-	ctx       context.Context
-	cfg       config.Config
-	userRepo  repository.UserRepository
+	minioRepo        repository.S3Repository
+	ctx              context.Context
+	cfg              config.Config
+	userRepo         repository.UserRepository
+	verificationRepo repository.VerificationRepository
 }
 
-func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository) VerificationUsecase {
+func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository, verificationRepo repository.VerificationRepository) VerificationUsecase {
 	return &verificationService{
-		minioRepo: minioRepo,
-		ctx:       ctx,
-		cfg:       cfg,
-		userRepo:  userRepo,
+		minioRepo:        minioRepo,
+		ctx:              ctx,
+		cfg:              cfg,
+		userRepo:         userRepo,
+		verificationRepo: verificationRepo,
 	}
 }
 
@@ -48,9 +52,10 @@ func (v *verificationService) UpdateVerificationInfo(req *dto.UpdateUserVerifica
 	if err != nil {
 		return err
 	}
-	user.IsVerified = req.Isverified
 
-	err = v.userRepo.Update(v.ctx, user)
+	user.IsVerified = req.Isverified
+	log.Println(user.IsVerified)
+	err = v.userRepo.UpdateVerification(v.ctx, user)
 	if err != nil {
 		return err
 	}
@@ -58,11 +63,15 @@ func (v *verificationService) UpdateVerificationInfo(req *dto.UpdateUserVerifica
 	return nil
 }
 
-func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, email string) error {
-	user, err := v.userRepo.FindByEmail(v.ctx, email)
+func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string) error {
+	user, err := v.userRepo.FindByID(v.ctx, userID)
 	if err != nil {
 		return err
 	}
+
+	verification := domain.Verification{}
+	verification.UserID = user.ID
+	// TODO: try ekyc here
 
 	uploadInfo, err := v.minioRepo.UploadFile(v.ctx, file.Filename, reader, file.Size, file.Header.Get("Content-Type"), "verification-images")
 	if err != nil {
@@ -70,13 +79,17 @@ func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.Fi
 	}
 
 	uri := uploadInfo.Bucket + "/" + uploadInfo.Key
-	user.CardImage = &uri
-	v.userRepo.Update(v.ctx, user)
+	verification.CardImage = &uri
+
+	err = v.verificationRepo.Create(&verification)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (v *verificationService) GetVerificationInfo(userEmail string, instructorEmail string, info *dto.GetUserVerificationDTO) error {
+func (v *verificationService) GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error {
 	instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
 	if err != nil {
 		return err
@@ -86,19 +99,12 @@ func (v *verificationService) GetVerificationInfo(userEmail string, instructorEm
 		return exception.ErrPermissionDenied
 	}
 
-	user, err := v.userRepo.FindByEmail(v.ctx, userEmail)
+	verification, err := v.verificationRepo.FindByID(verificationID)
 	if err != nil {
 		return err
 	}
 
-	info.Email = user.Email
-	info.Name = user.Name
-	info.MiddleName = user.MiddleName
-	info.Surname = user.Surname
-	info.PhoneNumber = user.PhoneNumber
-	info.Role = user.Role
-	info.IsVerified = user.IsVerified
-	info.CardImage = user.CardImage
+	*info = *verification
 
 	return nil
 }

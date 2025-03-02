@@ -61,7 +61,8 @@ func main() {
 	transactionUsecase := usecase.NewTransactionService(transactionRepo)
 	transactionHandler := rest.NewTransactionHandler(*transactionUsecase)
 
-	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo)
+	verificationRepo := gorm.NewVerificationGormRepo(db)
+	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo, verificationRepo)
 	verifcationHandler := rest.NewVerificationHandler(verifcationUsecase)
 
 	offerUsecase := usecase.NewOfferService(offerRepo, productRequestRepo, userRepo, ctx)
@@ -99,7 +100,7 @@ func main() {
 
 	verifyRoute := app.Group("/verify", middleware.AuthMiddleware(&cfg))
 	verifyRoute.Post("/", verifcationHandler.VerifyWithKYC)
-	verifyRoute.Get("/:email", verifcationHandler.GetVerificationInfo)
+	verifyRoute.Get("/:verification_id", verifcationHandler.GetVerificationInfo)
 	verifyRoute.Post("/set/:email", verifcationHandler.UpdateVerificationInfo)
 
 	offerRoute := app.Group("/offers", middleware.AuthMiddleware(&cfg))
