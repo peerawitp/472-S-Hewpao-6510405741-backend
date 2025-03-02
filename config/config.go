@@ -28,8 +28,11 @@ type Config struct {
 	EmailUser     string
 	EmailPassword string
 
-	StripeSecretKey       string
-	StripeWebhookSecret   string
+	StripeSecretKey     string
+	StripeWebhookSecret string
+
+	KYCApiUrl string
+	KYCApiKey string
 }
 
 func NewConfig() (config Config) {
@@ -58,8 +61,11 @@ func NewConfig() (config Config) {
 		EmailUser:     getEnv("EMAIL_USER"),
 		EmailPassword: getEnv("EMAIL_PASSWORD"),
 
-		StripeSecretKey:       getEnv("STRIPE_SECRET_KEY"),
-		StripeWebhookSecret:   getEnv("STRIPE_WEBHOOK_SECRET"),
+		StripeSecretKey:     getEnv("STRIPE_SECRET_KEY"),
+		StripeWebhookSecret: getEnv("STRIPE_WEBHOOK_SECRET"),
+
+		KYCApiUrl: getEnv("KYC_API_URL"),
+		KYCApiKey: getEnv("KYC_API_KEY"),
 	}
 	return
 }

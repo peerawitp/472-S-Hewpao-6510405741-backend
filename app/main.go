@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -29,6 +30,7 @@ func main() {
 	minio := bootstrap.ProvideMinIOClient(ctx, &cfg)
 
 	message := gomail.NewMessage()
+	httpCli := &http.Client{}
 
 	app.Use(logger.New())
 
@@ -62,7 +64,7 @@ func main() {
 	transactionHandler := rest.NewTransactionHandler(*transactionUsecase)
 
 	verificationRepo := gorm.NewVerificationGormRepo(db)
-	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo, verificationRepo)
+	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo, verificationRepo, httpCli)
 	verifcationHandler := rest.NewVerificationHandler(verifcationUsecase)
 
 	offerUsecase := usecase.NewOfferService(offerRepo, productRequestRepo, userRepo, ctx)

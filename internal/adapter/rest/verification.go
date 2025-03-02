@@ -123,7 +123,7 @@ func (v *verificationHandler) UpdateVerificationInfo(c *fiber.Ctx) error {
 		})
 	}
 
-	err = v.service.UpdateVerificationInfo(&req, userEmail, instructorEmail)
+	err = v.service.UpdateIsVerified(&req, userEmail, instructorEmail)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

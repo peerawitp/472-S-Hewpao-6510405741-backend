@@ -23,5 +23,5 @@ type User struct {
 	ProductRequests []ProductRequest `gorm:"foreignKey:UserID"`
 	Offers          []Offer          `gorm:"foreignKey:UserID"`
 
-	Verification Verification `gorm:"foreignKey:UserID"`
+	Verification Verification `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;"`
 }
