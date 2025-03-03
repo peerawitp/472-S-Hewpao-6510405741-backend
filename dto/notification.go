@@ -5,7 +5,7 @@ import (
 )
 
 type NotificationDTO struct {
-	ToID    string `json:"to_id"`
+	ToEmail string `json:"to_email"`
 	Subject string `json:"subject"`
 	Content string `json:"content"`
 }

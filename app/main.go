@@ -34,6 +34,8 @@ func main() {
 
 	app.Use(logger.New())
 
+	offerRepo := gorm.NewOfferGormRepo(db)
+
 	oauthRepoFactory := repository.NewOAuthRepositoryFactory()
 	oauthRepoFactory.Register("google", oauth.NewGoogleOAuthRepository(&cfg))
 
@@ -45,18 +47,17 @@ func main() {
 	userRepo := gorm.NewUserGormRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 
-	gmailRepo, err := email.NewGmailEmailNotificationRepo(message, &cfg)
+	gmailNotificationRepo, err := email.NewGmailEmailNotificationRepo(message, &cfg)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	gmailNotificationUsecase := usecase.NewNotificationUsecase(gmailRepo, userRepo, ctx, message)
+	gmailNotificationUsecase := usecase.NewNotificationUsecase(gmailNotificationRepo, userRepo, ctx, message, &cfg, offerRepo)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, &oauthRepoFactory, &cfg, minioRepo, ctx)
 	authHandler := rest.NewAuthHandler(authUsecase)
 
-	offerRepo := gorm.NewOfferGormRepo(db)
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
-	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, gmailNotificationUsecase, &cfg)
+	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, &cfg, message, gmailNotificationUsecase)
 	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase)
 
 	transactionRepo := gorm.NewTransactionRepository(db)

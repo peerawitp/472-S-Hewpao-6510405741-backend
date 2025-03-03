@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/hewpao/hewpao-backend/config"
-	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/repository"
 	"gopkg.in/gomail.v2"
@@ -37,9 +36,9 @@ func NewGmailEmailNotificationRepo(message *gomail.Message, cfg *config.Config) 
 	}, nil
 }
 
-func (e *gmailEmailNotificationRepo) Notify(toUser *domain.User, req *dto.NotificationDTO) error {
+func (e *gmailEmailNotificationRepo) Notify(req *dto.NotificationDTO) error {
 	e.message.SetHeader("From", e.cfg.EmailUser)
-	e.message.SetHeader("To", toUser.Email)
+	e.message.SetHeader("To", req.ToEmail)
 	e.message.SetHeader("Subject", req.Subject)
 	e.message.SetBody("text/html", req.Content)
 

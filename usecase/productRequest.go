@@ -2,11 +2,8 @@ package usecase
 
 import (
 	"context"
-	"html/template"
 	"io"
 	"mime/multipart"
-	"strings"
-	"time"
 
 	"github.com/hewpao/hewpao-backend/config"
 	"github.com/hewpao/hewpao-backend/domain"
@@ -15,6 +12,7 @@ import (
 	"github.com/hewpao/hewpao-backend/repository"
 	"github.com/hewpao/hewpao-backend/types"
 	"github.com/minio/minio-go/v7"
+	"gopkg.in/gomail.v2"
 )
 
 type ProductRequestUsecase interface {
@@ -27,24 +25,26 @@ type ProductRequestUsecase interface {
 }
 
 type productRequestService struct {
-	repo                     repository.ProductRequestRepository
-	minioRepo                repository.S3Repository
-	ctx                      context.Context
-	offerRepo                repository.OfferRepository
-	userRepo                 repository.UserRepository
-	gmailNotificationUsecase NotificationUsecase
-	cfg                      *config.Config
+	repo                repository.ProductRequestRepository
+	minioRepo           repository.S3Repository
+	ctx                 context.Context
+	offerRepo           repository.OfferRepository
+	userRepo            repository.UserRepository
+	cfg                 *config.Config
+	message             *gomail.Message
+	notificationService NotificationUsecase
 }
 
-func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, gmailNotificationUsecase NotificationUsecase, cfg *config.Config) ProductRequestUsecase {
+func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, cfg *config.Config, message *gomail.Message, notificationService NotificationUsecase) ProductRequestUsecase {
 	return &productRequestService{
-		repo:                     repo,
-		minioRepo:                minioRepo,
-		ctx:                      ctx,
-		offerRepo:                offerRepo,
-		userRepo:                 userRepo,
-		gmailNotificationUsecase: gmailNotificationUsecase,
-		cfg:                      cfg,
+		repo:                repo,
+		minioRepo:           minioRepo,
+		ctx:                 ctx,
+		offerRepo:           offerRepo,
+		userRepo:            userRepo,
+		cfg:                 cfg,
+		message:             message,
+		notificationService: notificationService,
 	}
 }
 
@@ -87,49 +87,7 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 		return err
 	}
 
-	var content strings.Builder
-
-	err = notifyUpdate(productRequest, pr.cfg, &content)
-	if err != nil {
-		return err
-	}
-
-	travelerNotify := dto.NotificationDTO{
-		ToID:    offer.UserID,
-		Subject: "[HEWPAO] Product Request Current Status Report",
-		Content: content.String(),
-	}
-
-	err = pr.gmailNotificationUsecase.Notify(&travelerNotify)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func notifyUpdate(productRequest *domain.ProductRequest, cfg *config.Config, content *strings.Builder) error {
-	// Prepare the notification data
-	data := dto.NotificationDataDTO{
-		RecipientName: productRequest.User.Name,
-		CompanyName:   "HEWPAO",
-		ProductID:     productRequest.ID,
-		ProductStatus: productRequest.DeliveryStatus,
-		SupportEmail:  cfg.EmailUser,
-		Year:          time.Now().Year(),
-	}
-
-	// Parse the template file
-	tmpl, err := template.ParseFiles("./assets/emailTemplate.html")
-	if err != nil {
-		return err
-	}
-
-	// Clear any existing content in the builder before executing
-	content.Reset()
-
-	// Execute the template and build content
-	err = tmpl.Execute(content, data)
+	err = pr.notificationService.PrNotify(productRequest)
 	if err != nil {
 		return err
 	}
