@@ -4,6 +4,8 @@ import (
 	"context"
 	"io"
 	"mime/multipart"
+	"strings"
+	"time"
 
 	"github.com/hewpao/hewpao-backend/config"
 	"github.com/hewpao/hewpao-backend/domain"
@@ -168,8 +170,30 @@ func (pr *productRequestService) CreateProductRequest(productRequest *domain.Pro
 	return nil
 }
 
+func getUrls(pr *productRequestService, productRequest *domain.ProductRequest) ([]string, error) {
+	duration, err := time.ParseDuration(pr.cfg.S3Expiration)
+	urls := []string{}
+	if err != nil {
+		return nil, err
+	}
+
+	for _, img := range productRequest.Images {
+		path := strings.SplitN(img, "hewpao-s3/", 2)
+		url, err := pr.minioRepo.GetSignedURL(pr.ctx, pr.cfg.S3BucketName, path[1], duration)
+		if err != nil {
+			return nil, err
+		}
+		urls = append(urls, url)
+	}
+	return urls, nil
+}
+
 func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error) {
 	productRequest, err := pr.repo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	urls, err := getUrls(pr, productRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +202,7 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 		ID:           productRequest.ID,
 		Desc:         productRequest.Desc,
 		Category:     productRequest.Category,
-		Images:       productRequest.Images,
+		Images:       urls,
 		Budget:       productRequest.Budget,
 		Quantity:     productRequest.Quantity,
 		UserID:       productRequest.UserID,
@@ -201,11 +225,16 @@ func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]d
 	res := []dto.DetailOfProductRequestResponseDTO{}
 
 	for _, productRequest := range productRequests {
+		urls, err := getUrls(pr, &productRequest)
+		if err != nil {
+			return nil, err
+		}
+
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
 			ID:        productRequest.ID,
 			Desc:      productRequest.Desc,
 			Category:  productRequest.Category,
-			Images:    productRequest.Images,
+			Images:    urls,
 			Budget:    productRequest.Budget,
 			Quantity:  productRequest.Quantity,
 			UserID:    productRequest.UserID,
@@ -232,11 +261,15 @@ func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*
 	var dest []dto.DetailOfProductRequestResponseDTO
 
 	for _, productRequest := range productRequests {
+		urls, err := getUrls(pr, &productRequest)
+		if err != nil {
+			return nil, err
+		}
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
 			ID:        productRequest.ID,
 			Desc:      productRequest.Desc,
 			Category:  productRequest.Category,
-			Images:    productRequest.Images,
+			Images:    urls,
 			Budget:    productRequest.Budget,
 			Quantity:  productRequest.Quantity,
 			UserID:    productRequest.UserID,
