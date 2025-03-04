@@ -14,6 +14,7 @@ import (
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/repository"
 	"github.com/hewpao/hewpao-backend/types"
+	"github.com/hewpao/hewpao-backend/util"
 )
 
 type VerificationUsecase interface {
@@ -178,7 +179,14 @@ func (v *verificationService) GetVerificationInfo(instructorEmail string, info *
 		return err
 	}
 
+	images := []string{*verification.CardImage}
+	urls, err := util.GetUrls(v.minioRepo, v.ctx, &v.cfg, images)
+	if err != nil {
+		return err
+	}
+
 	*info = *verification
+	*info.CardImage = urls[0]
 
 	return nil
 }

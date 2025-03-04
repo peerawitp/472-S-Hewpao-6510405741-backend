@@ -11,6 +11,7 @@ import (
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/repository"
 	"github.com/hewpao/hewpao-backend/types"
+	"github.com/hewpao/hewpao-backend/util"
 	"github.com/minio/minio-go/v7"
 	"gopkg.in/gomail.v2"
 )
@@ -173,12 +174,16 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 	if err != nil {
 		return nil, err
 	}
+	urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+	if err != nil {
+		return nil, err
+	}
 
 	res := dto.DetailOfProductRequestResponseDTO{
 		ID:           productRequest.ID,
 		Desc:         productRequest.Desc,
 		Category:     productRequest.Category,
-		Images:       productRequest.Images,
+		Images:       urls,
 		Budget:       productRequest.Budget,
 		Quantity:     productRequest.Quantity,
 		UserID:       productRequest.UserID,
@@ -201,11 +206,16 @@ func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]d
 	res := []dto.DetailOfProductRequestResponseDTO{}
 
 	for _, productRequest := range productRequests {
+		urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+		if err != nil {
+			return nil, err
+		}
+
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
 			ID:        productRequest.ID,
 			Desc:      productRequest.Desc,
 			Category:  productRequest.Category,
-			Images:    productRequest.Images,
+			Images:    urls,
 			Budget:    productRequest.Budget,
 			Quantity:  productRequest.Quantity,
 			UserID:    productRequest.UserID,
@@ -232,11 +242,15 @@ func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*
 	var dest []dto.DetailOfProductRequestResponseDTO
 
 	for _, productRequest := range productRequests {
+		urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+		if err != nil {
+			return nil, err
+		}
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
 			ID:        productRequest.ID,
 			Desc:      productRequest.Desc,
 			Category:  productRequest.Category,
-			Images:    productRequest.Images,
+			Images:    urls,
 			Budget:    productRequest.Budget,
 			Quantity:  productRequest.Quantity,
 			UserID:    productRequest.UserID,

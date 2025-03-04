@@ -3,7 +3,9 @@ package s3
 import (
 	"context"
 	"io"
+	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hewpao/hewpao-backend/config"
@@ -45,4 +47,14 @@ func (r *MinIOS3RepositoryImpl) UploadFile(ctx context.Context, objectName strin
 	})
 
 	return uploadInfo, err
+}
+
+// TODO: Get url
+func (r *MinIOS3RepositoryImpl) GetSignedURL(ctx context.Context, bucketName string, objectName string, expires time.Duration) (string, error) {
+	url, err := r.client.PresignedGetObject(ctx, bucketName, objectName, expires, url.Values{})
+	if err != nil {
+		return "", err
+	}
+
+	return url.String(), nil
 }
