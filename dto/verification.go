@@ -6,6 +6,7 @@ import (
 
 type VerifyWithKYCDTO struct {
 	CardImage *fiber.FormFile `form:"card-image" validate:"required"`
+	Provider  string          `json:"provider" validate:"required"`
 }
 
 type UpdateUserVerificationDTO struct {

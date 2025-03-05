@@ -53,7 +53,7 @@ func (v *verificationHandler) VerifyWithKYC(c *fiber.Ctx) error {
 		})
 	}
 
-	err = v.service.VerifyWithKYC(fileReaders[0], files[0], userID)
+	err = v.service.VerifyWithKYC(fileReaders[0], files[0], userID, req.Provider)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

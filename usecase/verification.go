@@ -1,12 +1,9 @@
 package usecase
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"io"
 	"mime/multipart"
-	"net/http"
 
 	"github.com/hewpao/hewpao-backend/config"
 	"github.com/hewpao/hewpao-backend/domain"
@@ -18,7 +15,7 @@ import (
 )
 
 type VerificationUsecase interface {
-	VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string) error
+	VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string, provider string) error
 	GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error
 	UpdateIsVerified(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error
 }
@@ -29,17 +26,17 @@ type verificationService struct {
 	cfg              config.Config
 	userRepo         repository.UserRepository
 	verificationRepo repository.VerificationRepository
-	httpCli          *http.Client
+	ekycRepoFactory  repository.EKYCRepositoryFactory
 }
 
-func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository, verificationRepo repository.VerificationRepository, httpCli *http.Client) VerificationUsecase {
+func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository, verificationRepo repository.VerificationRepository, ekycRepoFactory repository.EKYCRepositoryFactory) VerificationUsecase {
 	return &verificationService{
 		minioRepo:        minioRepo,
 		ctx:              ctx,
 		cfg:              cfg,
 		userRepo:         userRepo,
 		verificationRepo: verificationRepo,
-		httpCli:          httpCli,
+		ekycRepoFactory:  ekycRepoFactory,
 	}
 }
 
@@ -67,53 +64,6 @@ func (v *verificationService) UpdateIsVerified(req *dto.UpdateUserVerificationDT
 	return nil
 }
 
-func eKYC(file *multipart.FileHeader, cfg *config.Config, httpCli *http.Client) (*dto.EKYCResponseDTO, error) {
-	var b bytes.Buffer
-	writer := multipart.NewWriter(&b)
-
-	part, err := writer.CreateFormFile("file", file.Filename)
-	if err != nil {
-		return nil, err
-	}
-
-	fileReader, err := file.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer fileReader.Close()
-
-	_, err = io.Copy(part, fileReader)
-	if err != nil {
-		return nil, err
-	}
-
-	err = writer.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", cfg.KYCApiUrl, &b)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("apikey", cfg.KYCApiKey)
-
-	res, err := httpCli.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	var result dto.EKYCResponseDTO
-	err = json.NewDecoder(res.Body).Decode(&result)
-	if err != nil {
-		return nil, err
-	}
-
-	return &result, nil
-}
-
 func newVerification(res *dto.EKYCResponseDTO, userID string, cardImageURI string) *domain.Verification {
 	return &domain.Verification{
 		UserID:      userID,
@@ -138,7 +88,12 @@ func newVerification(res *dto.EKYCResponseDTO, userID string, cardImageURI strin
 	}
 }
 
-func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string) error {
+func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string, provider string) error {
+	ekyc, err := v.ekycRepoFactory.GetRepository(provider)
+	if err != nil {
+		return err
+	}
+
 	user, err := v.userRepo.FindByID(v.ctx, userID)
 	if err != nil {
 		return err
@@ -151,7 +106,7 @@ func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.Fi
 
 	uri := uploadInfo.Bucket + "/" + uploadInfo.Key
 
-	res, err := eKYC(file, &v.cfg, v.httpCli)
+	res, err := ekyc.Verify(file)
 	if err != nil {
 		return err
 	}

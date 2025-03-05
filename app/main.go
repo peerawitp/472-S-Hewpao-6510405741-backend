@@ -9,6 +9,7 @@ import (
 	"github.com/hewpao/hewpao-backend/bootstrap"
 	"github.com/hewpao/hewpao-backend/config"
 	"github.com/hewpao/hewpao-backend/ctx"
+	"github.com/hewpao/hewpao-backend/internal/adapter/ekyc"
 	"github.com/hewpao/hewpao-backend/internal/adapter/email"
 	"github.com/hewpao/hewpao-backend/internal/adapter/gorm"
 	"github.com/hewpao/hewpao-backend/internal/adapter/middleware"
@@ -57,15 +58,19 @@ func main() {
 	authHandler := rest.NewAuthHandler(authUsecase)
 
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
-	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, &cfg, message, gmailNotificationUsecase)
-	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase)
+	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, &cfg, message)
+	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase, gmailNotificationUsecase)
 
 	transactionRepo := gorm.NewTransactionRepository(db)
 	transactionUsecase := usecase.NewTransactionService(transactionRepo)
 	transactionHandler := rest.NewTransactionHandler(*transactionUsecase)
 
 	verificationRepo := gorm.NewVerificationGormRepo(db)
-	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo, verificationRepo, httpCli)
+
+	ekycRepoFactory := repository.NewEKYCRepositoryFactory()
+	ekycRepoFactory.Register("iapp", ekyc.NewIappVerificationRepo(&cfg, httpCli))
+
+	verifcationUsecase := usecase.NewVerificationService(minioRepo, ctx, cfg, userRepo, verificationRepo, ekycRepoFactory)
 	verifcationHandler := rest.NewVerificationHandler(verifcationUsecase)
 
 	offerUsecase := usecase.NewOfferService(offerRepo, productRequestRepo, userRepo, ctx)
