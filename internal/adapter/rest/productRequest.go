@@ -67,9 +67,11 @@ func (pr *productRequestHandler) UpdateProductRequestStatus(c *fiber.Ctx) error 
 		})
 	}
 
-	err = pr.notificationService.PrNotify(productRequest)
+	err = pr.notificationService.PrNotify(productRequest, req.NotifyProvider)
 	if err != nil {
-		return err
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	return c.JSON(fiber.Map{

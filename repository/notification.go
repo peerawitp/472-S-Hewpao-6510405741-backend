@@ -1,9 +1,31 @@
 package repository
 
 import (
-	"github.com/hewpao/hewpao-backend/dto"
+	"errors"
+
+	"github.com/hewpao/hewpao-backend/domain"
 )
 
 type NotificationRepository interface {
-	Notify(req *dto.NotificationDTO) error
+	PrNotify(user *domain.User, producRequest *domain.ProductRequest) error
+}
+
+type NotificationRepositoryFactory struct {
+	repos map[string]NotificationRepository
+}
+
+func NewNotificationRepositoryFactory() NotificationRepositoryFactory {
+	return NotificationRepositoryFactory{repos: make(map[string]NotificationRepository)}
+}
+
+func (f *NotificationRepositoryFactory) Register(provider string, repo NotificationRepository) {
+	f.repos[provider] = repo
+}
+
+func (f *NotificationRepositoryFactory) GetRepository(provider string) (NotificationRepository, error) {
+	repo, exists := f.repos[provider]
+	if !exists {
+		return nil, errors.New("unsupported notification provider")
+	}
+	return repo, nil
 }
