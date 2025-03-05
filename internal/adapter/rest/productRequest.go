@@ -22,12 +22,14 @@ type ProductRequestHandler interface {
 }
 
 type productRequestHandler struct {
-	service usecase.ProductRequestUsecase
+	service             usecase.ProductRequestUsecase
+	notificationService usecase.NotificationUsecase
 }
 
-func NewProductRequestHandler(service usecase.ProductRequestUsecase) ProductRequestHandler {
+func NewProductRequestHandler(service usecase.ProductRequestUsecase, notificationService usecase.NotificationUsecase) ProductRequestHandler {
 	return &productRequestHandler{
-		service: service,
+		service:             service,
+		notificationService: notificationService,
 	}
 }
 
@@ -58,11 +60,16 @@ func (pr *productRequestHandler) UpdateProductRequestStatus(c *fiber.Ctx) error 
 		})
 	}
 
-	err = pr.service.UpdateProductRequestStatus(&req, prID, userID)
+	productRequest, err := pr.service.UpdateProductRequestStatus(&req, prID, userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
+	}
+
+	err = pr.notificationService.PrNotify(productRequest)
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(fiber.Map{

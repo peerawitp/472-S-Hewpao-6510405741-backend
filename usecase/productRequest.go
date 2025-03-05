@@ -22,62 +22,60 @@ type ProductRequestUsecase interface {
 	GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error)
 	GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error)
 	UpdateProductRequest(req *dto.UpdateProductRequestDTO, prID int, userID string) error
-	UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) error
+	UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) (*domain.ProductRequest, error)
 }
 
 type productRequestService struct {
-	repo                repository.ProductRequestRepository
-	minioRepo           repository.S3Repository
-	ctx                 context.Context
-	offerRepo           repository.OfferRepository
-	userRepo            repository.UserRepository
-	cfg                 *config.Config
-	message             *gomail.Message
-	notificationService NotificationUsecase
+	repo      repository.ProductRequestRepository
+	minioRepo repository.S3Repository
+	ctx       context.Context
+	offerRepo repository.OfferRepository
+	userRepo  repository.UserRepository
+	cfg       *config.Config
+	message   *gomail.Message
 }
 
-func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, cfg *config.Config, message *gomail.Message, notificationService NotificationUsecase) ProductRequestUsecase {
+func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, cfg *config.Config, message *gomail.Message) ProductRequestUsecase {
 	return &productRequestService{
-		repo:                repo,
-		minioRepo:           minioRepo,
-		ctx:                 ctx,
-		offerRepo:           offerRepo,
-		userRepo:            userRepo,
-		cfg:                 cfg,
-		message:             message,
-		notificationService: notificationService,
+		repo:      repo,
+		minioRepo: minioRepo,
+		ctx:       ctx,
+		offerRepo: offerRepo,
+		userRepo:  userRepo,
+		cfg:       cfg,
+		message:   message,
 	}
 }
 
-func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) error {
+func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) (*domain.ProductRequest, error) {
 	productRequest, err := pr.repo.FindByID(prID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if productRequest.SelectedOfferID == nil {
-		return exception.ErrCouldNotUpdateStatus
+		return nil, exception.ErrCouldNotUpdateStatus
 	}
 
 	user, err := pr.userRepo.FindByID(pr.ctx, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	offer := new(domain.Offer)
 	offer.ID = *productRequest.SelectedOfferID
 	err = pr.offerRepo.GetByID(offer)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if user.Role != types.Admin {
 		if offer.UserID != userID {
-			return exception.ErrPermissionDenied
+			return nil, exception.ErrPermissionDenied
 		}
 
 		if req.DeliveryStatus != types.Purchased {
-			return exception.ErrPermissionDenied
+			return nil, exception.ErrPermissionDenied
 		}
 	}
 
@@ -85,15 +83,10 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 
 	err = pr.repo.Update(productRequest)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = pr.notificationService.PrNotify(productRequest)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return productRequest, nil
 }
 
 func (pr *productRequestService) UpdateProductRequest(req *dto.UpdateProductRequestDTO, prID int, userID string) error {

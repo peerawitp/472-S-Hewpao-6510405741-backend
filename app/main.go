@@ -57,8 +57,8 @@ func main() {
 	authHandler := rest.NewAuthHandler(authUsecase)
 
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
-	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, &cfg, message, gmailNotificationUsecase)
-	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase)
+	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, &cfg, message)
+	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase, gmailNotificationUsecase)
 
 	transactionRepo := gorm.NewTransactionRepository(db)
 	transactionUsecase := usecase.NewTransactionService(transactionRepo)
