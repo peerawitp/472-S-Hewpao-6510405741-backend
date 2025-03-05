@@ -10,9 +10,9 @@ import (
 	"github.com/hewpao/hewpao-backend/config"
 	"github.com/hewpao/hewpao-backend/ctx"
 	"github.com/hewpao/hewpao-backend/internal/adapter/ekyc"
-	"github.com/hewpao/hewpao-backend/internal/adapter/email"
 	"github.com/hewpao/hewpao-backend/internal/adapter/gorm"
 	"github.com/hewpao/hewpao-backend/internal/adapter/middleware"
+	"github.com/hewpao/hewpao-backend/internal/adapter/notitype"
 	"github.com/hewpao/hewpao-backend/internal/adapter/oauth"
 	"github.com/hewpao/hewpao-backend/internal/adapter/payment"
 	"github.com/hewpao/hewpao-backend/internal/adapter/rest"
@@ -48,18 +48,26 @@ func main() {
 	userRepo := gorm.NewUserGormRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 
-	gmailNotificationRepo, err := email.NewGmailEmailNotificationRepo(message, &cfg)
+	notificationRepoFactory := repository.NewNotificationRepositoryFactory()
+	emailRepo, err := notitype.NewEmailNotificationRepo(message, &cfg)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Panic(err)
 	}
-	gmailNotificationUsecase := usecase.NewNotificationUsecase(gmailNotificationRepo, userRepo, ctx, message, &cfg, offerRepo)
+	logRepo, err := notitype.NewTestNotificationRepo(&cfg)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	notificationRepoFactory.Register("email", emailRepo)
+	notificationRepoFactory.Register("log", logRepo)
+	notificationUsecase := usecase.NewNotificationUsecase(notificationRepoFactory, userRepo, ctx, message, &cfg, offerRepo)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, &oauthRepoFactory, &cfg, minioRepo, ctx)
 	authHandler := rest.NewAuthHandler(authUsecase)
 
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
 	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, &cfg, message)
-	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase, gmailNotificationUsecase)
+	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase, notificationUsecase)
 
 	transactionRepo := gorm.NewTransactionRepository(db)
 	transactionUsecase := usecase.NewTransactionService(transactionRepo)

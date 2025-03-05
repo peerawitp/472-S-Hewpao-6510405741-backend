@@ -20,6 +20,7 @@ type UpdateProductRequestDTO struct {
 
 type UpdateProductRequestStatusDTO struct {
 	DeliveryStatus types.DeliveryStatus `json:"delivery_status" validate:"delivery-status"`
+	NotifyProvider string               `json:"notify_provider" validate:"required"`
 }
 
 type CreateProductRequestRequestDTO struct {
