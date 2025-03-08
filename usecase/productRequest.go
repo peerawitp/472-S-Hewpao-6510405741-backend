@@ -3,10 +3,12 @@ package usecase
 import (
 	"context"
 	"io"
+	"log"
 	"mime/multipart"
 
-	"github.com/hewpao/hewpao-backend/config"
 	"errors"
+
+	"github.com/hewpao/hewpao-backend/config"
 
 	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/domain/exception"
@@ -87,6 +89,7 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 			}
 
 		case false: // buyer > cancel
+			log.Println("buyer > cancel", *productRequest.UserID, userID)
 			if *productRequest.UserID != userID {
 				return nil, exception.ErrPermissionDenied
 			}
