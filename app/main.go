@@ -71,7 +71,7 @@ func main() {
 
 
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
-	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, &cfg, message, chatRepo)
+	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, chatRepo, &cfg, message)
 	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase, notificationUsecase)
 
 
