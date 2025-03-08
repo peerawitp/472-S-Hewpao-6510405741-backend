@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"log"
 	"strconv"
 	"time"
 
@@ -41,7 +40,6 @@ func (pr *productRequestHandler) UpdateProductRequestStatus(c *fiber.Ctx) error 
 	req := dto.UpdateProductRequestStatusDTO{}
 
 	err := c.BodyParser(&req)
-	
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
@@ -68,8 +66,7 @@ func (pr *productRequestHandler) UpdateProductRequestStatus(c *fiber.Ctx) error 
 			"error": err.Error(),
 		})
 	}
-	log.Println("------------------------------------------------------------------------")
-	log.Println(productRequest)
+
 	err = pr.notificationService.PrNotify(productRequest, req.NotifyProvider)
 	if err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{

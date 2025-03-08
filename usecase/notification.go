@@ -6,6 +6,7 @@ import (
 	"github.com/hewpao/hewpao-backend/config"
 	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/repository"
+
 	"github.com/hewpao/hewpao-backend/types"
 	"gopkg.in/gomail.v2"
 )
@@ -57,10 +58,12 @@ func (pn *productRequestNotifier) PrNotify(prod *domain.ProductRequest, provider
 	var toUserID string
 
 	offer := domain.Offer{}
-	offer.ID = *prod.SelectedOfferID
-	err = pn.offerRepo.GetByID(&offer)
-	if err != nil {
-		return err
+	if prod.SelectedOfferID != nil {
+		offer.ID = *prod.SelectedOfferID
+		err = pn.offerRepo.GetByID(&offer)
+		if err != nil {
+			return err
+		}
 	}
 
 	switch prod.DeliveryStatus {
@@ -72,6 +75,10 @@ func (pn *productRequestNotifier) PrNotify(prod *domain.ProductRequest, provider
 		}
 	case types.Opening, types.Cancel, types.Returned:
 		toUserID = offer.UserID
+		if toUserID == "" {
+			return nil
+		}
+
 		err = prSend(toUserID, pn, prod, notificationRepo)
 		if err != nil {
 			return err
@@ -79,6 +86,10 @@ func (pn *productRequestNotifier) PrNotify(prod *domain.ProductRequest, provider
 	case types.PickedUp, types.OutForDelivery, types.Delivered:
 		buyerID := *prod.UserID
 		travelerID := offer.UserID
+		if travelerID == "" {
+			return nil
+		}
+
 		err = prSend(buyerID, pn, prod, notificationRepo)
 		if err != nil {
 			return err

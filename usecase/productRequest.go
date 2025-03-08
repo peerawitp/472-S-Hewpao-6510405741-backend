@@ -75,6 +75,7 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 			if err != nil {
 				return nil, err
 			}
+
 			if offer.UserID != userID {
 				return nil, exception.ErrPermissionDenied
 			}
