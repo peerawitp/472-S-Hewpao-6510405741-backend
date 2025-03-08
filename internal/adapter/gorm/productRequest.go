@@ -68,3 +68,11 @@ func (pr *ProductRequestGormRepo) IsOwnedByUser(prID int, userID string) (bool, 
 	}
 	return count > 0, nil
 }
+func (pr *ProductRequestGormRepo) Delete(productRequest *domain.ProductRequest) error {
+	result := pr.db.Delete(&productRequest)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+

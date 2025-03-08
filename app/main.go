@@ -65,9 +65,15 @@ func main() {
 	authUsecase := usecase.NewAuthUsecase(userRepo, &oauthRepoFactory, &cfg, minioRepo, ctx)
 	authHandler := rest.NewAuthHandler(authUsecase)
 
+	chatRepo := gorm.NewChatRepo(db)
+	chatUsecase := usecase.NewChatService(chatRepo)
+	chatHandler := rest.NewChatHandler(chatUsecase)
+
+
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
-	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, &cfg, message)
+	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, chatRepo, &cfg, message)
 	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase, notificationUsecase)
+
 
 	transactionRepo := gorm.NewTransactionRepository(db)
 	transactionUsecase := usecase.NewTransactionService(transactionRepo)
@@ -89,6 +95,13 @@ func main() {
 
 	stripeWebhookHandler := webhook.NewStripeWebhookHandler(&cfg, checkoutUsecase)
 
+	
+
+	messageRepo := gorm.NewMessageGormRepo(db)
+	messageUsecase := usecase.NewMessageService(messageRepo)
+	messageHandler := rest.NewMessageHandler(*messageUsecase)
+
+	
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("hewpao is running 🚀")
 	})
@@ -133,6 +146,12 @@ func main() {
 	webhookRoute := app.Group("/webhook")
 	stripeWebhookRoute := webhookRoute.Group("/stripe")
 	stripeWebhookRoute.Post("/", stripeWebhookHandler.WebhookPost)
+	
+	chatRoute := app.Group("/chat")
+	chatRoute.Post("/create", chatHandler.CreateChat)
+
+	messageRoute := app.Group("/message")
+	messageRoute.Post("/create", messageHandler.CreateMessage)
 
 	app.Listen(":9090")
 }

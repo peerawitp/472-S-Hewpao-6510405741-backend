@@ -11,4 +11,5 @@ type ProductRequestRepository interface {
 	FindPaginatedProductRequests(page, limit int) ([]domain.ProductRequest, int64, error)
 	Update(productRequest *domain.ProductRequest) error
 	IsOwnedByUser(prID int, userID string) (bool, error)
+	Delete(productRequest *domain.ProductRequest) error
 }

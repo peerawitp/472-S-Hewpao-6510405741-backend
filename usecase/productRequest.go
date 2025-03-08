@@ -3,9 +3,13 @@ package usecase
 import (
 	"context"
 	"io"
+	"log"
 	"mime/multipart"
 
+	"errors"
+
 	"github.com/hewpao/hewpao-backend/config"
+
 	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/domain/exception"
 	"github.com/hewpao/hewpao-backend/dto"
@@ -31,11 +35,12 @@ type productRequestService struct {
 	ctx       context.Context
 	offerRepo repository.OfferRepository
 	userRepo  repository.UserRepository
+	chatRepo  repository.ChatRepository
 	cfg       *config.Config
 	message   *gomail.Message
 }
 
-func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, cfg *config.Config, message *gomail.Message) ProductRequestUsecase {
+func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, chatRepo repository.ChatRepository, cfg *config.Config, message *gomail.Message) ProductRequestUsecase {
 	return &productRequestService{
 		repo:      repo,
 		minioRepo: minioRepo,
@@ -44,6 +49,7 @@ func NewProductRequestService(repo repository.ProductRequestRepository, minioRep
 		userRepo:  userRepo,
 		cfg:       cfg,
 		message:   message,
+		chatRepo:  chatRepo,
 	}
 }
 
@@ -53,29 +59,43 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 		return nil, err
 	}
 
-	if productRequest.SelectedOfferID == nil {
-		return nil, exception.ErrCouldNotUpdateStatus
-	}
-
 	user, err := pr.userRepo.FindByID(pr.ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	offer := new(domain.Offer)
-	offer.ID = *productRequest.SelectedOfferID
-	err = pr.offerRepo.GetByID(offer)
-	if err != nil {
-		return nil, err
-	}
-
 	if user.Role != types.Admin {
-		if offer.UserID != userID {
-			return nil, exception.ErrPermissionDenied
-		}
 
-		if req.DeliveryStatus != types.Purchased {
-			return nil, exception.ErrPermissionDenied
+		switch user.IsVerified {
+		case true: // traveler > purchase + cancel
+			if productRequest.SelectedOfferID == nil {
+				return nil, exception.ErrCouldNotUpdateStatus
+			}
+
+			offer := new(domain.Offer)
+			offer.ID = *productRequest.SelectedOfferID
+			err = pr.offerRepo.GetByID(offer)
+			if err != nil {
+				return nil, err
+			}
+			if offer.UserID != userID {
+				return nil, exception.ErrPermissionDenied
+			}
+			if req.DeliveryStatus != types.Purchased {
+				return nil, exception.ErrPermissionDenied
+			}
+			if req.DeliveryStatus != types.Cancel {
+				return nil, exception.ErrPermissionDenied
+			}
+
+		case false: // buyer > cancel
+			log.Println("buyer > cancel", *productRequest.UserID, userID)
+			if *productRequest.UserID != userID {
+				return nil, exception.ErrPermissionDenied
+			}
+			if req.DeliveryStatus != types.Cancel {
+				return nil, exception.ErrPermissionDenied
+			}
 		}
 	}
 
@@ -155,7 +175,20 @@ func (pr *productRequestService) CreateProductRequest(productRequest *domain.Pro
 
 	productRequest.Images = uris
 
-	err := pr.repo.Create(productRequest)
+	chatName := productRequest.Name
+	newChat := domain.Chat{
+		Name: chatName,
+	}
+
+	err := pr.chatRepo.Create(&newChat)
+
+	if err != nil {
+		return err
+	}
+
+	productRequest.ChatID = newChat.ID
+
+	err = pr.repo.Create(productRequest)
 	if err != nil {
 		return err
 	}
@@ -264,4 +297,22 @@ func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*
 	}
 
 	return &res, nil
+}
+
+func (pr *productRequestService) CancleProductRequest(prID int, userID string) error {
+	productRequest, err := pr.repo.FindByID(prID)
+	if err != nil {
+		return err
+	}
+
+	if *productRequest.UserID != userID {
+		return errors.New("you are not the owner of this product request")
+	}
+
+	err = pr.repo.Delete(productRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
