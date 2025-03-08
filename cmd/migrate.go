@@ -12,7 +12,8 @@ func main() {
 	cfg := config.NewConfig()
 	db := bootstrap.NewDB(&cfg)
 
-	if err := db.AutoMigrate(&domain.User{}, &domain.Account{}, &domain.ProductRequest{}, &domain.Offer{}, &domain.Transaction{}, &domain.Verification{}); err != nil {
+
+	if err := db.AutoMigrate(&domain.User{}, &domain.Account{}, &domain.ProductRequest{}, &domain.Offer{}, &domain.Transaction{}, &domain.Verification{}, &domain.Message{}, &domain.Chat{}); err != nil {
 		log.Fatal(err)
 	}
 
