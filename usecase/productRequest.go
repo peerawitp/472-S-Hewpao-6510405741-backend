@@ -2,11 +2,9 @@ package usecase
 
 import (
 	"context"
-	"io"
-	"log"
-	"mime/multipart"
-
 	"errors"
+	"io"
+	"mime/multipart"
 
 	"github.com/hewpao/hewpao-backend/config"
 
@@ -65,7 +63,6 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 	}
 
 	if user.Role != types.Admin {
-
 		switch user.IsVerified {
 		case true: // traveler > purchase + cancel
 			if productRequest.SelectedOfferID == nil {
@@ -89,7 +86,6 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 			}
 
 		case false: // buyer > cancel
-			log.Println("buyer > cancel", *productRequest.UserID, userID)
 			if *productRequest.UserID != userID {
 				return nil, exception.ErrPermissionDenied
 			}
@@ -181,7 +177,6 @@ func (pr *productRequestService) CreateProductRequest(productRequest *domain.Pro
 	}
 
 	err := pr.chatRepo.Create(&newChat)
-
 	if err != nil {
 		return err
 	}
