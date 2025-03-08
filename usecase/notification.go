@@ -49,7 +49,6 @@ func prSend(toUserID string, pn *productRequestNotifier, prod *domain.ProductReq
 }
 
 func (pn *productRequestNotifier) PrNotify(prod *domain.ProductRequest, provider string) error {
-	
 	notificationRepo, err := pn.notificationRepoFactory.GetRepository(provider)
 	if err != nil {
 		return err
@@ -63,9 +62,6 @@ func (pn *productRequestNotifier) PrNotify(prod *domain.ProductRequest, provider
 	if err != nil {
 		return err
 	}
-
-	
-
 
 	switch prod.DeliveryStatus {
 	case types.Pending, types.Purchased, types.Refunded:
