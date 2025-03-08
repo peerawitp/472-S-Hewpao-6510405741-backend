@@ -59,3 +59,12 @@ func (pr *ProductRequestGormRepo) FindPaginatedProductRequests(page, limit int) 
 	pr.db.Model(&domain.ProductRequest{}).Count(&total)
 	return productRequests, total, nil
 }
+
+func (pr *ProductRequestGormRepo) Delete(productRequest *domain.ProductRequest) error {
+	result := pr.db.Delete(&productRequest)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+

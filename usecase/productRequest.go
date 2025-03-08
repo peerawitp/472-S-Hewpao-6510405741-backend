@@ -5,6 +5,8 @@ import (
 	"io"
 	"mime/multipart"
 
+	"errors"
+
 	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/domain/exception"
 	"github.com/hewpao/hewpao-backend/dto"
@@ -28,15 +30,17 @@ type productRequestService struct {
 	ctx       context.Context
 	offerRepo repository.OfferRepository
 	userRepo  repository.UserRepository
+	chatRepo  repository.ChatRepository
 }
 
-func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository) ProductRequestUsecase {
+func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, chatRepo repository.ChatRepository) ProductRequestUsecase {
 	return &productRequestService{
 		repo:      repo,
 		minioRepo: minioRepo,
 		ctx:       ctx,
 		offerRepo: offerRepo,
 		userRepo:  userRepo,
+		chatRepo:  chatRepo,
 	}
 }
 
@@ -46,29 +50,42 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 		return err
 	}
 
-	if productRequest.SelectedOfferID == nil {
-		return exception.ErrCouldNotUpdateStatus
-	}
-
 	user, err := pr.userRepo.FindByID(pr.ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	offer := new(domain.Offer)
-	offer.ID = *productRequest.SelectedOfferID
-	err = pr.offerRepo.GetByID(offer)
-	if err != nil {
-		return err
-	}
-
 	if user.Role != types.Admin {
-		if offer.UserID != userID {
-			return exception.ErrPermissionDenied
-		}
 
-		if req.DeliveryStatus != types.Purchased {
-			return exception.ErrPermissionDenied
+		switch user.IsVerified {
+		case true: // traveler > purchase + cancel
+			if productRequest.SelectedOfferID == nil {
+				return exception.ErrCouldNotUpdateStatus
+			}
+
+			offer := new(domain.Offer)
+			offer.ID = *productRequest.SelectedOfferID
+			err = pr.offerRepo.GetByID(offer)
+			if err != nil {
+				return err
+			}
+			if offer.UserID != userID {
+				return exception.ErrPermissionDenied
+			}
+			if req.DeliveryStatus != types.Purchased {
+				return exception.ErrPermissionDenied
+			}
+			if req.DeliveryStatus != types.Cancel {
+				return exception.ErrPermissionDenied
+			}
+
+		case false: // buyer > cancel
+			if *productRequest.UserID != userID {
+				return exception.ErrPermissionDenied
+			}
+			if req.DeliveryStatus != types.Cancel {
+				return exception.ErrPermissionDenied
+			}
 		}
 	}
 
@@ -147,7 +164,20 @@ func (pr *productRequestService) CreateProductRequest(productRequest *domain.Pro
 
 	productRequest.Images = uris
 
-	err := pr.repo.Create(productRequest)
+	chatName := productRequest.Name
+	newChat := domain.Chat{
+		Name: chatName,
+	}
+
+	err := pr.chatRepo.Create(&newChat)
+
+	if err != nil {
+		return err
+	}
+
+	productRequest.ChatID = newChat.ID
+
+	err = pr.repo.Create(productRequest)
 	if err != nil {
 		return err
 	}
@@ -242,4 +272,22 @@ func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*
 	}
 
 	return &res, nil
+}
+
+func (pr *productRequestService) CancleProductRequest(prID int, userID string) error {
+	productRequest, err := pr.repo.FindByID(prID)
+	if err != nil {
+		return err
+	}
+
+	if *productRequest.UserID != userID {
+		return errors.New("you are not the owner of this product request")
+	}
+
+	err = pr.repo.Delete(productRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

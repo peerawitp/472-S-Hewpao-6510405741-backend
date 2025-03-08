@@ -23,4 +23,5 @@ type ProductRequest struct {
 	SelectedOffer   *Offer
 
 	DeliveryStatus types.DeliveryStatus `gorm:"type:varchar(20);default:'Opening'"`
+	ChatID uint  `gorm:"unique;not null"`
 }

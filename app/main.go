@@ -35,9 +35,13 @@ func main() {
 	authUsecase := usecase.NewAuthUsecase(userRepo, &oauthRepoFactory, &cfg, minioRepo, ctx)
 	authHandler := rest.NewAuthHandler(authUsecase)
 
+	chatRepo := gorm.NewChatRepo(db)
+	chatUsecase := usecase.NewChatService(chatRepo)
+	chatHandler := rest.NewChatHandler(chatUsecase)
+
 	offerRepo := gorm.NewOfferGormRepo(db)
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
-	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo)
+	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, chatRepo)
 	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase)
 
 	transactionRepo := gorm.NewTransactionRepository(db)
@@ -51,6 +55,13 @@ func main() {
 	offerUsecase := usecase.NewOfferService(offerRepo, productRequestRepo, userRepo, ctx)
 	offerHandler := rest.NewOfferHandler(offerUsecase)
 
+	
+
+	messageRepo := gorm.NewMessageGormRepo(db)
+	messageUsecase := usecase.NewMessageService(messageRepo)
+	messageHandler := rest.NewMessageHandler(*messageUsecase)
+
+	
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("hewpao is running 🚀")
 	})
@@ -87,6 +98,13 @@ func main() {
 	transactionRoute := app.Group("/transactions", middleware.AuthMiddleware(&cfg))
 	transactionRoute.Post("/", transactionHandler.CreateTransaction)
 	transactionRoute.Get("/:id", transactionHandler.GetTransactionByID)
+
+	
+	chatRoute := app.Group("/chat")
+	chatRoute.Post("/create", chatHandler.CreateChat)
+
+	messageRoute := app.Group("/message")
+	messageRoute.Post("/create", messageHandler.CreateMessage)
 
 	app.Listen(":9090")
 }
