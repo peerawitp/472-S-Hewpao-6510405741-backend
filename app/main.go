@@ -69,11 +69,9 @@ func main() {
 	chatUsecase := usecase.NewChatService(chatRepo)
 	chatHandler := rest.NewChatHandler(chatUsecase)
 
-
 	productRequestRepo := gorm.NewProductRequestGormRepo(db)
 	productRequestUsecase := usecase.NewProductRequestService(productRequestRepo, minioRepo, ctx, offerRepo, userRepo, chatRepo, &cfg, message)
 	productRequestHandler := rest.NewProductRequestHandler(productRequestUsecase, notificationUsecase)
-
 
 	transactionRepo := gorm.NewTransactionRepository(db)
 	transactionUsecase := usecase.NewTransactionService(transactionRepo)
@@ -95,13 +93,16 @@ func main() {
 
 	stripeWebhookHandler := webhook.NewStripeWebhookHandler(&cfg, checkoutUsecase)
 
-	
-
 	messageRepo := gorm.NewMessageGormRepo(db)
 	messageUsecase := usecase.NewMessageService(messageRepo)
 	messageHandler := rest.NewMessageHandler(*messageUsecase)
 
-	
+	bankRepo := gorm.NewBankGormRepo(db)
+
+	travlerPayoutAccountRepo := gorm.NewTravelerPayoutAccountGormRepository(db)
+	travelerPayoutAccountUsecase := usecase.NewTravelerPayoutAccountService(ctx, travlerPayoutAccountRepo, bankRepo)
+	travelerPayoutAccountHandler := rest.NewTravelerPayoutAccountHandler(travelerPayoutAccountUsecase)
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("hewpao is running 🚀")
 	})
@@ -142,11 +143,16 @@ func main() {
 	checkoutRoute := app.Group("/checkout", middleware.AuthMiddleware(&cfg))
 	checkoutRoute.Post("/gateway", checkoutHandler.CheckoutWithPaymentGateway)
 
+	travelerPayoutAccountRoute := app.Group("/payout-account", middleware.AuthMiddleware(&cfg))
+	travelerPayoutAccountRoute.Post("/create", travelerPayoutAccountHandler.CreateTravelerPayoutAccount)
+	travelerPayoutAccountRoute.Get("/get", travelerPayoutAccountHandler.GetAccountsByUserID)
+	travelerPayoutAccountRoute.Get("/get-available-banks", travelerPayoutAccountHandler.GetAllAvailableBank)
+
 	// Webhook route
 	webhookRoute := app.Group("/webhook")
 	stripeWebhookRoute := webhookRoute.Group("/stripe")
 	stripeWebhookRoute.Post("/", stripeWebhookHandler.WebhookPost)
-	
+
 	chatRoute := app.Group("/chat")
 	chatRoute.Post("/create", chatHandler.CreateChat)
 

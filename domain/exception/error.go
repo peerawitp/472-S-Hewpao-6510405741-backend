@@ -19,4 +19,7 @@ var (
 	ErrCouldNotUpdateStatus = errors.New("could not update status yet")
 
 	ErrProductRequestAlreadyPaid = errors.New("product request already paid")
+
+	ErrDuplicateTravelerPayoutAccount = errors.New("duplicate traveler payout account")
+	ErrBankNotFound                   = errors.New("bank not found")
 )
