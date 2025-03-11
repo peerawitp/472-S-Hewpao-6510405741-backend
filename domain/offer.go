@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -10,4 +12,5 @@ type Offer struct {
 	ProductRequest   *ProductRequest
 	UserID           string `gorm:"not null"`
 	User             *User
+	OfferDate        time.Time
 }

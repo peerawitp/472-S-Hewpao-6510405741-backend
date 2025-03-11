@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>No Reply Email</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      .email-container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .header h2 {
+        color: #333333;
+      }
+      .content {
+        color: #555555;
+        line-height: 1.6;
+      }
+      .content p {
+        margin: 10px 0;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        color: #888888;
+      }
+      .footer p {
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="header">
+        <h2>No Reply - Automated Notification</h2>
+      </div>
+      <div class="content">
+        <p>Dear {{.RecipientName}},</p>
+        <p>
+          This is an automated message from {{.CompanyName}}. Please note that
+          the email address you’ve received this from is not monitored.
+        </p>
+        <p>
+          We would like to inform you about the current status of your product
+          request. Below are the details:
+        </p>
+        <ul>
+          <li><strong>Product ID:</strong> {{.ProductID}}</li>
+          <li><strong>Product Status:</strong> {{.ProductStatus}}</li>
+        </ul>
+        <p>
+          If you have any further inquiries, please contact our support team at
+          {{.SupportEmail}}.
+        </p>
+        <p>Best regards,<br />{{.CompanyName}} Team</p>
+      </div>
+      <div class="footer">
+        <p>This is an automated email. Please do not reply to this message.</p>
+        <p>&copy; {{.Year}} {{.CompanyName}}. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+</html>

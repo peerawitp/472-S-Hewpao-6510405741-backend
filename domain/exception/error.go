@@ -14,5 +14,12 @@ var (
 	ErrFileIsNull        = errors.New("file could not be null")
 	ErrFileCountLimit    = errors.New("file count limit exceeded")
 
-	ErrPermissionDenied = errors.New("no permssion")
+	ErrPermissionDenied     = errors.New("no permssion")
+	ErrParamsMissing        = errors.New("some params are missing")
+	ErrCouldNotUpdateStatus = errors.New("could not update status yet")
+
+	ErrProductRequestAlreadyPaid = errors.New("product request already paid")
+
+	ErrDuplicateTravelerPayoutAccount = errors.New("duplicate traveler payout account")
+	ErrBankNotFound                   = errors.New("bank not found")
 )

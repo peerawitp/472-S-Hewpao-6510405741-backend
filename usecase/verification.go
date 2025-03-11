@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 
 	"github.com/hewpao/hewpao-backend/config"
+	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/domain/exception"
 	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/repository"
@@ -14,34 +15,33 @@ import (
 )
 
 type VerificationUsecase interface {
-	VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, token string) error
-	GetVerificationInfo(userEmail string, token string, info *dto.GetUserVerificationDTO) error
-	UpdateVerificationInfo(req *dto.UpdateUserVerificationDTO, userEmail string, token string) error
+	VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string, provider string) error
+	GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error
+	UpdateIsVerified(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error
 }
 
 type verificationService struct {
-	minioRepo repository.S3Repository
-	ctx       context.Context
-	cfg       config.Config
-	userRepo  repository.UserRepository
+	minioRepo        repository.S3Repository
+	ctx              context.Context
+	cfg              config.Config
+	userRepo         repository.UserRepository
+	verificationRepo repository.VerificationRepository
+	ekycRepoFactory  repository.EKYCRepositoryFactory
 }
 
-func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository) VerificationUsecase {
+func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository, verificationRepo repository.VerificationRepository, ekycRepoFactory repository.EKYCRepositoryFactory) VerificationUsecase {
 	return &verificationService{
-		minioRepo: minioRepo,
-		ctx:       ctx,
-		cfg:       cfg,
-		userRepo:  userRepo,
+		minioRepo:        minioRepo,
+		ctx:              ctx,
+		cfg:              cfg,
+		userRepo:         userRepo,
+		verificationRepo: verificationRepo,
+		ekycRepoFactory:  ekycRepoFactory,
 	}
 }
 
-func (v *verificationService) UpdateVerificationInfo(req *dto.UpdateUserVerificationDTO, userEmail string, token string) error {
-	instructorEmail, err := util.JwtDecap(token, v.cfg, v.ctx)
-	if err != nil {
-		return err
-	}
-
-	instructor, err := v.userRepo.FindByEmail(v.ctx, *instructorEmail)
+func (v *verificationService) UpdateIsVerified(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error {
+	instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
 	if err != nil {
 		return err
 	}
@@ -54,9 +54,9 @@ func (v *verificationService) UpdateVerificationInfo(req *dto.UpdateUserVerifica
 	if err != nil {
 		return err
 	}
-	user.IsVerified = req.Isverified
 
-	err = v.userRepo.Update(v.ctx, user)
+	user.IsVerified = req.Isverified
+	err = v.userRepo.UpdateVerification(v.ctx, user)
 	if err != nil {
 		return err
 	}
@@ -64,12 +64,37 @@ func (v *verificationService) UpdateVerificationInfo(req *dto.UpdateUserVerifica
 	return nil
 }
 
-func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, token string) error {
-	email, err := util.JwtDecap(token, v.cfg, v.ctx)
+func newVerification(res *dto.EKYCResponseDTO, userID string, cardImageURI string) *domain.Verification {
+	return &domain.Verification{
+		UserID:      userID,
+		CardImage:   &cardImageURI,
+		IDNumber:    res.IDNumber,
+		FirstNameTh: res.ThFName,
+		LastNameTh:  res.ThLName,
+		FirstNameEn: res.EnFName,
+		LastNameEn:  res.EnLName,
+		Gender:      res.Gender,
+		DOBTh:       res.ThDOB,
+		DOBEn:       res.EnDOB,
+		ExpireTh:    res.ThExpire,
+		ExpireEn:    res.EnExpire,
+		IssueTh:     res.ThIssue,
+		IssueEn:     res.EnIssue,
+		Address:     res.Address,
+		SubDistrict: res.SubDistrict,
+		District:    res.District,
+		Province:    res.Province,
+		PostalCode:  res.PostalCode,
+	}
+}
+
+func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string, provider string) error {
+	ekyc, err := v.ekycRepoFactory.GetRepository(provider)
 	if err != nil {
 		return err
 	}
-	user, err := v.userRepo.FindByEmail(v.ctx, *email)
+
+	user, err := v.userRepo.FindByID(v.ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -80,19 +105,22 @@ func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.Fi
 	}
 
 	uri := uploadInfo.Bucket + "/" + uploadInfo.Key
-	user.CardImage = &uri
-	v.userRepo.Update(v.ctx, user)
 
-	return nil
-}
-
-func (v *verificationService) GetVerificationInfo(userEmail string, token string, info *dto.GetUserVerificationDTO) error {
-	instructorEmail, err := util.JwtDecap(token, v.cfg, v.ctx)
+	res, err := ekyc.Verify(file)
 	if err != nil {
 		return err
 	}
 
-	instructor, err := v.userRepo.FindByEmail(v.ctx, *instructorEmail)
+	verification := newVerification(res, user.ID, uri)
+	if err := v.verificationRepo.Create(verification); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (v *verificationService) GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error {
+	instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
 	if err != nil {
 		return err
 	}
@@ -101,19 +129,19 @@ func (v *verificationService) GetVerificationInfo(userEmail string, token string
 		return exception.ErrPermissionDenied
 	}
 
-	user, err := v.userRepo.FindByEmail(v.ctx, userEmail)
+	verification, err := v.verificationRepo.FindByID(verificationID)
 	if err != nil {
 		return err
 	}
 
-	info.Email = user.Email
-	info.Name = user.Name
-	info.MiddleName = user.MiddleName
-	info.Surname = user.Surname
-	info.PhoneNumber = user.PhoneNumber
-	info.Role = user.Role
-	info.IsVerified = user.IsVerified
-	info.CardImage = user.CardImage
+	images := []string{*verification.CardImage}
+	urls, err := util.GetUrls(v.minioRepo, v.ctx, &v.cfg, images)
+	if err != nil {
+		return err
+	}
+
+	*info = *verification
+	*info.CardImage = urls[0]
 
 	return nil
 }

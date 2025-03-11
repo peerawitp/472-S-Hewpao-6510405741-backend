@@ -8,6 +8,21 @@ import (
 	"github.com/lib/pq"
 )
 
+type UpdateProductRequestDTO struct {
+	Name     string         `json:"name"`
+	Desc     string         `json:"desc"`
+	Budget   float64        `json:"budget" validate:"gt=0"`
+	Quantity uint           `json:"quantity" validate:"gt=0"`
+	Category types.Category `json:"category" validate:"category"`
+
+	SelectedOfferID uint `json:"selected_offer_id"`
+}
+
+type UpdateProductRequestStatusDTO struct {
+	DeliveryStatus types.DeliveryStatus `json:"delivery_status" validate:"delivery-status"`
+	NotifyProvider string               `json:"notify_provider" validate:"required"`
+}
+
 type CreateProductRequestRequestDTO struct {
 	Name     string         `json:"name" validate:"required"`
 	Desc     string         `json:"desc" validate:"required"`
@@ -24,11 +39,42 @@ type CreateProductRequestResponseDTO struct {
 	Quantity uint           `json:"quantity"`
 	Category types.Category `json:"category"`
 
-	UserID *string        `json:"userID"`
-	User   *domain.User   `json:"user"`
-	Offers []domain.Offer `json:"offers"`
+	UserID *string `json:"userID"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type DetailOfProductRequestResponseDTO struct {
+	ID       uint           `json:"id"`
+	Desc     string         `json:"desc"`
+	Images   pq.StringArray `json:"images"`
+	Budget   float64        `json:"budget"`
+	Quantity uint           `json:"quantity"`
+	Category types.Category `json:"category"`
+
+	UserID *string        `json:"userID"`
+	Offers []domain.Offer `json:"offers"`
+
+	SelectedOffer *domain.Offer `json:"selected_offer"`
+
+	Transactions []domain.Transaction `json:"transactions"`
+
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type PaginationGetProductRequestRequestDTO struct {
+	Page  int `query:"page"`
+	Limit int `query:"limit"`
+}
+
+type PaginationGetProductRequestResponse[T any] struct {
+	Data       []T   `json:"data"`
+	Page       int   `json:"page"`
+	Limit      int   `json:"limit"`
+	TotalRows  int64 `json:"total_rows"`
+	TotalPages int   `json:"total_pages"`
 }

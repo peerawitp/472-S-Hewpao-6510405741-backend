@@ -20,8 +20,8 @@ func NewUserGormRepository(db *gorm.DB) repository.UserRepository {
 	return &UserGormRepository{db: db}
 }
 
-func (u *UserGormRepository) Update(ctx context.Context, user *domain.User) error {
-	result := u.db.Model(&domain.User{}).Where("email = ?", user.Email).Updates(user)
+func (u *UserGormRepository) UpdateVerification(ctx context.Context, user *domain.User) error {
+	result := u.db.Model(&domain.User{}).Where("email = ?", user.Email).Select("is_verified").Updates(user)
 	if result.Error != nil {
 		return result.Error
 	}

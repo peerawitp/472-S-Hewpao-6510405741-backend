@@ -22,6 +22,18 @@ type Config struct {
 	S3AccessKeyId         string
 	S3SecretAccessKey     string
 	S3UseSSL              bool
+	S3Expiration          string
+
+	EmailServer   string
+	EmailPort     string
+	EmailUser     string
+	EmailPassword string
+
+	StripeSecretKey     string
+	StripeWebhookSecret string
+
+	KYCApiUrl string
+	KYCApiKey string
 }
 
 func NewConfig() (config Config) {
@@ -44,6 +56,18 @@ func NewConfig() (config Config) {
 		S3AccessKeyId:         getEnv("S3_ACCESS_KEY_ID"),
 		S3SecretAccessKey:     getEnv("S3_SECRET_ACCESS_KEY"),
 		S3UseSSL:              true,
+		S3Expiration:          getEnv("S3_EXPIRATION"),
+
+		EmailServer:   getEnv("EMAIL_SERVER"),
+		EmailPort:     getEnv("EMAIL_PORT"),
+		EmailUser:     getEnv("EMAIL_USER"),
+		EmailPassword: getEnv("EMAIL_PASSWORD"),
+
+		StripeSecretKey:     getEnv("STRIPE_SECRET_KEY"),
+		StripeWebhookSecret: getEnv("STRIPE_WEBHOOK_SECRET"),
+
+		KYCApiUrl: getEnv("KYC_API_URL"),
+		KYCApiKey: getEnv("KYC_API_KEY"),
 	}
 	return
 }

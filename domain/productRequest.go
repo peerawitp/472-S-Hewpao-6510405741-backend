@@ -18,4 +18,12 @@ type ProductRequest struct {
 	UserID *string
 	User   *User
 	Offers []Offer `gorm:"foreignKey:ProductRequestID"`
+
+	SelectedOfferID *uint
+	SelectedOffer   *Offer
+
+	Transactions []Transaction `gorm:"foreignKey:ProductRequestID"`
+
+	DeliveryStatus types.DeliveryStatus `gorm:"type:varchar(20);default:'Opening'"`
+	ChatID uint  `gorm:"unique;not null"`
 }
