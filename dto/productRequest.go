@@ -11,7 +11,6 @@ import (
 type UpdateProductRequestDTO struct {
 	Name     string         `json:"name"`
 	Desc     string         `json:"desc"`
-	Budget   float64        `json:"budget" validate:"gt=0"`
 	Quantity uint           `json:"quantity" validate:"gt=0"`
 	Category types.Category `json:"category" validate:"category"`
 
@@ -29,6 +28,8 @@ type CreateProductRequestRequestDTO struct {
 	Budget   float64        `json:"budget" validate:"required,gt=0"`
 	Quantity uint           `json:"quantity" validate:"required,gt=0"`
 	Category types.Category `json:"category" validate:"required,category"`
+	From     string         `json:"from" validate:"required"`
+	To       string         `json:"to" validate:"required"`
 }
 
 type CreateProductRequestResponseDTO struct {
@@ -40,6 +41,8 @@ type CreateProductRequestResponseDTO struct {
 	Category types.Category `json:"category"`
 
 	UserID *string `json:"userID"`
+	From   string  `json:"deliver_from"`
+	To     string  `json:"deliver_to"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`

@@ -25,5 +25,8 @@ type ProductRequest struct {
 	Transactions []Transaction `gorm:"foreignKey:ProductRequestID"`
 
 	DeliveryStatus types.DeliveryStatus `gorm:"type:varchar(20);default:'Opening'"`
-	ChatID uint  `gorm:"unique;not null"`
+	ChatID         uint                 `gorm:"unique;not null"`
+
+	From string
+	To   string
 }
