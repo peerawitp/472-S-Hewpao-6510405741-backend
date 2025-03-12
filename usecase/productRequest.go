@@ -22,6 +22,7 @@ type ProductRequestUsecase interface {
 	CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error
 	GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error)
 	GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error)
+	GetTravelerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error)
 	GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error)
 	UpdateProductRequest(req *dto.UpdateProductRequestDTO, prID int, userID string) error
 	UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) (*domain.ProductRequest, error)
@@ -137,7 +138,6 @@ func (pr *productRequestService) UpdateProductRequest(req *dto.UpdateProductRequ
 
 	productRequest.Name = req.Name
 	productRequest.Desc = req.Desc
-	productRequest.Budget = req.Budget
 	productRequest.Category = req.Category
 	productRequest.Quantity = req.Quantity
 	productRequest.SelectedOfferID = &req.SelectedOfferID
@@ -217,6 +217,40 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 	}
 
 	return &res, nil
+}
+
+func (pr *productRequestService) GetTravelerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) {
+	productRequests, err := pr.repo.FindByOfferUserID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	res := []dto.DetailOfProductRequestResponseDTO{}
+
+	for _, productRequest := range productRequests {
+		urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+		if err != nil {
+			return nil, err
+		}
+
+		productRequestRes := dto.DetailOfProductRequestResponseDTO{
+			ID:        productRequest.ID,
+			Desc:      productRequest.Desc,
+			Category:  productRequest.Category,
+			Images:    urls,
+			Budget:    productRequest.Budget,
+			Quantity:  productRequest.Quantity,
+			UserID:    productRequest.UserID,
+			Offers:    productRequest.Offers,
+			CreatedAt: productRequest.CreatedAt,
+			UpdatedAt: productRequest.UpdatedAt,
+			DeletedAt: &productRequest.DeletedAt.Time,
+		}
+
+		res = append(res, productRequestRes)
+	}
+
+	return res, nil
 }
 
 func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) {

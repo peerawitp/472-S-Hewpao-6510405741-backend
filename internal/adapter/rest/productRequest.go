@@ -19,6 +19,7 @@ type ProductRequestHandler interface {
 	GetPaginatedProductRequests(c *fiber.Ctx) error
 	UpdateProductRequest(c *fiber.Ctx) error
 	UpdateProductRequestStatus(c *fiber.Ctx) error
+	GetTravelerProductRequestsByUserID(c *fiber.Ctx) error
 }
 
 type productRequestHandler struct {
@@ -160,6 +161,8 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 		Offers:   []domain.Offer{},
 		Images:   []string{},
 		UserID:   &userID,
+		From:     req.From,
+		To:       req.To,
 	}
 
 	err = pr.service.CreateProductRequest(&productRequest, files, fileReaders)
@@ -183,6 +186,8 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 		Category: productRequest.Category,
 
 		UserID: productRequest.UserID,
+		From:   productRequest.From,
+		To:     productRequest.To,
 
 		CreatedAt: productRequest.CreatedAt,
 		UpdatedAt: productRequest.UpdatedAt,
@@ -242,6 +247,24 @@ func (pr *productRequestHandler) GetBuyerProductRequestsByUserID(c *fiber.Ctx) e
 	userId, _ := claims["id"].(string)
 
 	productRequests, err := pr.service.GetBuyerProductRequestsByUserID(userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":          "success",
+		"product-requests": productRequests,
+	})
+}
+
+func (pr *productRequestHandler) GetTravelerProductRequestsByUserID(c *fiber.Ctx) error {
+	claims := c.Locals("user").(jwt.MapClaims)
+
+	userId, _ := claims["id"].(string)
+
+	productRequests, err := pr.service.GetTravelerProductRequestsByUserID(userId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

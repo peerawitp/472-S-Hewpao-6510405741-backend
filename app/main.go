@@ -134,6 +134,7 @@ func main() {
 	productRequestRoute.Get("/get", productRequestHandler.GetPaginatedProductRequests)
 	productRequestRoute.Get("/get/:id", productRequestHandler.GetDetailByID)
 	productRequestRoute.Get("/get-buyer", productRequestHandler.GetBuyerProductRequestsByUserID)
+	productRequestRoute.Get("/get-traveler", productRequestHandler.GetTravelerProductRequestsByUserID)
 
 	verifyRoute := app.Group("/verify", middleware.AuthMiddleware(&cfg))
 	verifyRoute.Post("/", verifcationHandler.VerifyWithKYC)
