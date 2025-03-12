@@ -19,6 +19,7 @@ type LoginResponseDTO struct {
 	Name        string  `json:"name"`
 	MiddleName  *string `json:"middle_name"`
 	Surname     string  `json:"surname"`
+	IsVerified  bool    `json:"is_verified"`
 	AccessToken string  `json:"access_token"`
 }
 

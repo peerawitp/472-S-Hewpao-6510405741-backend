@@ -46,6 +46,7 @@ func (a *authService) GetJWT(user *domain.User) (string, error) {
 		"name":        user.Name,
 		"middle_name": user.MiddleName,
 		"surname":     user.Surname,
+		"is_verified": user.IsVerified,
 		"exp":         expiredAt.Unix(),
 	}
 
@@ -88,6 +89,7 @@ func (a *authService) LoginWithCredentials(ctx context.Context, req dto.LoginWit
 		Name:        user.Name,
 		MiddleName:  user.MiddleName,
 		Surname:     user.Surname,
+		IsVerified:  user.IsVerified,
 		AccessToken: tokenString,
 	}
 
