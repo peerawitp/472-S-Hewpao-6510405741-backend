@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/hewpao/hewpao-backend/bootstrap"
 	"github.com/hewpao/hewpao-backend/config"
@@ -34,6 +35,12 @@ func main() {
 	httpCli := &http.Client{}
 
 	app.Use(logger.New())
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3000", // Allow requests from the frontend
+		AllowMethods: "GET,POST,PUT,DELETE",   // Allow specific HTTP methods
+		AllowHeaders: "Content-Type,Authorization",
+	}))
 
 	offerRepo := gorm.NewOfferGormRepo(db)
 
@@ -157,6 +164,8 @@ func main() {
 	chatRoute.Post("/create", chatHandler.CreateChat)
 
 	messageRoute := app.Group("/message")
+	messageRoute.Get("/:chat_id", messageHandler.GetByChatID)
+	messageRoute.Get("/message/:id", messageHandler.GetByID)
 	messageRoute.Post("/create", messageHandler.CreateMessage)
 
 	app.Listen(":9090")

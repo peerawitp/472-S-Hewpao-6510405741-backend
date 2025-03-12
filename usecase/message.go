@@ -23,7 +23,7 @@ func (m *MessageService) CreateMessage(userID string, chatID uint, text string) 
 
 	message := &domain.Message{
 		UserID:  userID,
-		ChatID: chatID,
+		ChatID:  chatID,
 		Content: text,
 	}
 
@@ -34,6 +34,18 @@ func (m *MessageService) CreateMessage(userID string, chatID uint, text string) 
 	}
 
 	return message, nil
+}
+
+func (m *MessageService) GetByChatID(id string) ([]domain.Message, error) {
+
+	var messages []domain.Message
+	messages, err := m.repo.GetByChatID(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return messages, nil
 }
 
 func (m *MessageService) GetByID(id string) (*domain.Message, error) {
