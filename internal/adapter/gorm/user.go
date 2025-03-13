@@ -57,12 +57,13 @@ func (u *UserGormRepository) Create(ctx context.Context, req dto.CreateUserDTO) 
 	}
 
 	user := domain.User{
-		ID:         id.String(),
-		Email:      req.Email,
-		Password:   req.Password,
-		Name:       req.Name,
-		MiddleName: req.MiddleName,
-		Surname:    req.Surname,
+		ID:          id.String(),
+		Email:       req.Email,
+		Password:    req.Password,
+		Name:        req.Name,
+		MiddleName:  req.MiddleName,
+		Surname:     req.Surname,
+		PhoneNumber: req.PhoneNumber,
 	}
 
 	createErr := u.db.Create(&user).Error
