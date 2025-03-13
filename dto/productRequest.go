@@ -23,13 +23,14 @@ type UpdateProductRequestStatusDTO struct {
 }
 
 type CreateProductRequestRequestDTO struct {
-	Name     string         `json:"name" validate:"required"`
-	Desc     string         `json:"desc" validate:"required"`
-	Budget   float64        `json:"budget" validate:"required,gt=0"`
-	Quantity uint           `json:"quantity" validate:"required,gt=0"`
-	Category types.Category `json:"category" validate:"required,category"`
-	From     string         `json:"from" validate:"required"`
-	To       string         `json:"to" validate:"required"`
+	Name         string         `json:"name" validate:"required"`
+	Desc         string         `json:"desc" validate:"required"`
+	Budget       float64        `json:"budget" validate:"required,gt=0"`
+	Quantity     uint           `json:"quantity" validate:"required,gt=0"`
+	Category     types.Category `json:"category" validate:"required,category"`
+	From         string         `json:"from" validate:"required"`
+	To           string         `json:"to" validate:"required"`
+	CheckService bool           `json:"check_service validate:"required"`
 }
 
 type CreateProductRequestResponseDTO struct {
@@ -40,9 +41,10 @@ type CreateProductRequestResponseDTO struct {
 	Quantity uint           `json:"quantity"`
 	Category types.Category `json:"category"`
 
-	UserID *string `json:"userID"`
-	From   string  `json:"deliver_from"`
-	To     string  `json:"deliver_to"`
+	UserID       *string `json:"userID"`
+	From         string  `json:"deliver_from"`
+	To           string  `json:"deliver_to"`
+	CheckService bool    `json:"check_service"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
@@ -63,6 +65,10 @@ type DetailOfProductRequestResponseDTO struct {
 	SelectedOffer *domain.Offer `json:"selected_offer"`
 
 	Transactions []domain.Transaction `json:"transactions"`
+
+	From         string `json:"deliver_from"`
+	To           string `json:"deliver_to"`
+	CheckService bool   `json:"check_service"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`

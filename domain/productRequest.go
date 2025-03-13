@@ -8,12 +8,13 @@ import (
 
 type ProductRequest struct {
 	gorm.Model
-	Name     string
-	Desc     string
-	Images   pq.StringArray `gorm:"type:text[]"`
-	Budget   float64
-	Quantity uint
-	Category types.Category `gorm:"type:varchar(20);default:'Other'"`
+	Name         string
+	Desc         string
+	Images       pq.StringArray `gorm:"type:text[]"`
+	Budget       float64
+	Quantity     uint
+	Category     types.Category `gorm:"type:varchar(20);default:'Other'"`
+	CheckService bool
 
 	UserID *string
 	User   *User
