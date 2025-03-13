@@ -1,8 +1,6 @@
 package gorm
 
 import (
-	"log"
-
 	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/repository"
 	"gorm.io/gorm"
@@ -59,7 +57,6 @@ func (pr *ProductRequestGormRepo) FindByOfferUserID(id string) ([]domain.Product
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	log.Println(productRequests[0].SelectedOfferID)
 
 	return productRequests, nil
 }
