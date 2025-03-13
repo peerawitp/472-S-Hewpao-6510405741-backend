@@ -238,20 +238,21 @@ func (pr *productRequestService) GetTravelerProductRequestsByUserID(id string) (
 		}
 
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
-			ID:           productRequest.ID,
-			Desc:         productRequest.Desc,
-			Category:     productRequest.Category,
-			Images:       urls,
-			Budget:       productRequest.Budget,
-			Quantity:     productRequest.Quantity,
-			UserID:       productRequest.UserID,
-			Offers:       productRequest.Offers,
-			To:           productRequest.To,
-			From:         productRequest.From,
-			CheckService: productRequest.CheckService,
-			CreatedAt:    productRequest.CreatedAt,
-			UpdatedAt:    productRequest.UpdatedAt,
-			DeletedAt:    &productRequest.DeletedAt.Time,
+			ID:             productRequest.ID,
+			Desc:           productRequest.Desc,
+			Category:       productRequest.Category,
+			Images:         urls,
+			Budget:         productRequest.Budget,
+			Quantity:       productRequest.Quantity,
+			UserID:         productRequest.UserID,
+			Offers:         productRequest.Offers,
+			To:             productRequest.To,
+			From:           productRequest.From,
+			CheckService:   productRequest.CheckService,
+			DeliveryStatus: productRequest.DeliveryStatus,
+			CreatedAt:      productRequest.CreatedAt,
+			UpdatedAt:      productRequest.UpdatedAt,
+			DeletedAt:      &productRequest.DeletedAt.Time,
 		}
 
 		res = append(res, productRequestRes)
@@ -275,20 +276,21 @@ func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]d
 		}
 
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
-			ID:           productRequest.ID,
-			Desc:         productRequest.Desc,
-			Category:     productRequest.Category,
-			Images:       urls,
-			Budget:       productRequest.Budget,
-			Quantity:     productRequest.Quantity,
-			UserID:       productRequest.UserID,
-			Offers:       productRequest.Offers,
-			To:           productRequest.To,
-			From:         productRequest.From,
-			CheckService: productRequest.CheckService,
-			CreatedAt:    productRequest.CreatedAt,
-			UpdatedAt:    productRequest.UpdatedAt,
-			DeletedAt:    &productRequest.DeletedAt.Time,
+			ID:             productRequest.ID,
+			Desc:           productRequest.Desc,
+			Category:       productRequest.Category,
+			Images:         urls,
+			Budget:         productRequest.Budget,
+			Quantity:       productRequest.Quantity,
+			UserID:         productRequest.UserID,
+			Offers:         productRequest.Offers,
+			To:             productRequest.To,
+			From:           productRequest.From,
+			CheckService:   productRequest.CheckService,
+			DeliveryStatus: productRequest.DeliveryStatus,
+			CreatedAt:      productRequest.CreatedAt,
+			UpdatedAt:      productRequest.UpdatedAt,
+			DeletedAt:      &productRequest.DeletedAt.Time,
 		}
 
 		res = append(res, productRequestRes)
@@ -313,20 +315,21 @@ func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*
 			return nil, err
 		}
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
-			ID:           productRequest.ID,
-			Desc:         productRequest.Desc,
-			Category:     productRequest.Category,
-			Images:       urls,
-			Budget:       productRequest.Budget,
-			Quantity:     productRequest.Quantity,
-			UserID:       productRequest.UserID,
-			Offers:       productRequest.Offers,
-			To:           productRequest.To,
-			From:         productRequest.From,
-			CheckService: productRequest.CheckService,
-			CreatedAt:    productRequest.CreatedAt,
-			UpdatedAt:    productRequest.UpdatedAt,
-			DeletedAt:    &productRequest.DeletedAt.Time,
+			ID:             productRequest.ID,
+			Desc:           productRequest.Desc,
+			Category:       productRequest.Category,
+			Images:         urls,
+			Budget:         productRequest.Budget,
+			Quantity:       productRequest.Quantity,
+			UserID:         productRequest.UserID,
+			Offers:         productRequest.Offers,
+			To:             productRequest.To,
+			From:           productRequest.From,
+			CheckService:   productRequest.CheckService,
+			DeliveryStatus: productRequest.DeliveryStatus,
+			CreatedAt:      productRequest.CreatedAt,
+			UpdatedAt:      productRequest.UpdatedAt,
+			DeletedAt:      &productRequest.DeletedAt.Time,
 		}
 		dest = append(dest, productRequestRes)
 	}

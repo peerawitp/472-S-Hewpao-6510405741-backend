@@ -41,10 +41,11 @@ type CreateProductRequestResponseDTO struct {
 	Quantity uint           `json:"quantity"`
 	Category types.Category `json:"category"`
 
-	UserID       *string `json:"userID"`
-	From         string  `json:"deliver_from"`
-	To           string  `json:"deliver_to"`
-	CheckService bool    `json:"check_service"`
+	UserID         *string              `json:"userID"`
+	From           string               `json:"deliver_from"`
+	To             string               `json:"deliver_to"`
+	CheckService   bool                 `json:"check_service"`
+	DeliveryStatus types.DeliveryStatus `json:"delivery_status"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
