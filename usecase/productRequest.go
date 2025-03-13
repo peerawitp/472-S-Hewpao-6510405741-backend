@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 
@@ -108,6 +109,7 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 }
 
 func (pr *productRequestService) UpdateProductRequest(req *dto.UpdateProductRequestDTO, prID int, userID string) error {
+	fmt.Println(prID, userID)
 	productRequest, err := pr.repo.FindByID(prID)
 	if err != nil {
 		return err
@@ -117,30 +119,38 @@ func (pr *productRequestService) UpdateProductRequest(req *dto.UpdateProductRequ
 		return exception.ErrPermissionDenied
 	}
 
-	offer := new(domain.Offer)
-	offer.ID = req.SelectedOfferID
-	err = pr.offerRepo.GetByID(offer)
-	if err != nil {
-		return err
-	}
+	if req.SelectedOfferID != 0 {
 
-	found := false
-	for _, o := range productRequest.Offers {
-		if o.ID == offer.ID {
-			found = true
-			break
+		offer := new(domain.Offer)
+		offer.ID = req.SelectedOfferID
+		err = pr.offerRepo.GetByID(offer)
+		if err != nil {
+			return err
 		}
-	}
 
-	if !found {
-		return exception.ErrPermissionDenied
+		found := false
+		for _, o := range productRequest.Offers {
+			if o.ID == offer.ID {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return exception.ErrOfferNotFound
+		}
+
 	}
 
 	productRequest.Name = req.Name
 	productRequest.Desc = req.Desc
 	productRequest.Category = req.Category
 	productRequest.Quantity = req.Quantity
-	productRequest.SelectedOfferID = &req.SelectedOfferID
+	if req.SelectedOfferID != 0 {
+		productRequest.SelectedOfferID = &req.SelectedOfferID
+	} else {
+		productRequest.SelectedOfferID = nil
+	}
 
 	err = pr.repo.Update(productRequest)
 	if err != nil {

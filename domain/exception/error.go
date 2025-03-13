@@ -22,4 +22,6 @@ var (
 
 	ErrDuplicateTravelerPayoutAccount = errors.New("duplicate traveler payout account")
 	ErrBankNotFound                   = errors.New("bank not found")
+
+	ErrOfferNotFound = errors.New("offer not found")
 )
