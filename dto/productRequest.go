@@ -64,7 +64,8 @@ type DetailOfProductRequestResponseDTO struct {
 
 	SelectedOffer *domain.Offer `json:"selected_offer"`
 
-	Transactions []domain.Transaction `json:"transactions"`
+	Transactions   []domain.Transaction `json:"transactions"`
+	DeliveryStatus types.DeliveryStatus `json:"delivery_status"`
 
 	From         string `json:"deliver_from"`
 	To           string `json:"deliver_to"`

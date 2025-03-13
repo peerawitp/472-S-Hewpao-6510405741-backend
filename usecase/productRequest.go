@@ -202,6 +202,7 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 	}
 
 	res := dto.DetailOfProductRequestResponseDTO{
+<<<<<<< HEAD
 		ID:           productRequest.ID,
 		Desc:         productRequest.Desc,
 		Category:     productRequest.Category,
@@ -217,6 +218,21 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 		CreatedAt:    productRequest.CreatedAt,
 		UpdatedAt:    productRequest.UpdatedAt,
 		DeletedAt:    &productRequest.DeletedAt.Time,
+=======
+		ID:             productRequest.ID,
+		Desc:           productRequest.Desc,
+		Category:       productRequest.Category,
+		Images:         urls,
+		Budget:         productRequest.Budget,
+		Quantity:       productRequest.Quantity,
+		UserID:         productRequest.UserID,
+		Offers:         productRequest.Offers,
+		Transactions:   productRequest.Transactions,
+		DeliveryStatus: productRequest.DeliveryStatus,
+		CreatedAt:      productRequest.CreatedAt,
+		UpdatedAt:      productRequest.UpdatedAt,
+		DeletedAt:      &productRequest.DeletedAt.Time,
+>>>>>>> a20b34f (add: delivery status field in get pr detailed)
 	}
 
 	return &res, nil
