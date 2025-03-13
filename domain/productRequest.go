@@ -21,7 +21,6 @@ type ProductRequest struct {
 	Offers []Offer `gorm:"foreignKey:ProductRequestID"`
 
 	SelectedOfferID *uint
-	SelectedOffer   *Offer
 
 	Transactions []Transaction `gorm:"foreignKey:ProductRequestID"`
 

@@ -64,7 +64,7 @@ type DetailOfProductRequestResponseDTO struct {
 	UserID *string        `json:"userID"`
 	Offers []domain.Offer `json:"offers"`
 
-	SelectedOffer *domain.Offer `json:"selected_offer"`
+	SelectedOfferID *uint `json:"selected_offer_id"`
 
 	Transactions   []domain.Transaction `json:"transactions"`
 	DeliveryStatus types.DeliveryStatus `json:"delivery_status"`
