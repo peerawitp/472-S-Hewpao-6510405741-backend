@@ -32,3 +32,12 @@ func (o *offerGormRepo) Create(offer *domain.Offer) error {
 
 	return nil
 }
+
+func (o *offerGormRepo) GetOfferDetailByOfferID(offerID int) (*domain.Offer, error) {
+	offer := domain.Offer{}
+	result := o.db.Preload("User").Preload("ProductRequest").First(&offer, offerID)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &offer, nil
+}

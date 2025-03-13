@@ -143,6 +143,7 @@ func main() {
 
 	offerRoute := app.Group("/offers", middleware.AuthMiddleware(&cfg))
 	offerRoute.Post("/", offerHandler.CreateOffer)
+	offerRoute.Get("/get/:id", offerHandler.GetOfferDetailByOfferID)
 
 	transactionRoute := app.Group("/transactions", middleware.AuthMiddleware(&cfg))
 	transactionRoute.Post("/", transactionHandler.CreateTransaction)
