@@ -64,7 +64,7 @@ func (pr *ProductRequestGormRepo) FindByOfferUserID(id string) ([]domain.Product
 func (pr *ProductRequestGormRepo) FindPaginatedProductRequests(page, limit int) ([]domain.ProductRequest, int64, error) {
 	var productRequests []domain.ProductRequest
 	var total int64
-	result := pr.db.Offset((page - 1) * limit).Limit(limit).Find(&productRequests)
+	result := pr.db.Preload("User").Preload("Offers").Preload("Transactions").Offset((page - 1) * limit).Limit(limit).Find(&productRequests)
 	if result.Error != nil {
 		return nil, 0, result.Error
 	}
