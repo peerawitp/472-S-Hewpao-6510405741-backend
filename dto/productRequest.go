@@ -54,6 +54,7 @@ type CreateProductRequestResponseDTO struct {
 
 type DetailOfProductRequestResponseDTO struct {
 	ID       uint           `json:"id"`
+	Name     string         `json:"name"`
 	Desc     string         `json:"desc"`
 	Images   pq.StringArray `json:"images"`
 	Budget   float64        `json:"budget"`

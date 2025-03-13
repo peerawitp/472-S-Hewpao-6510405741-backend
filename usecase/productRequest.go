@@ -203,6 +203,7 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
 
 	res := dto.DetailOfProductRequestResponseDTO{
 		ID:             productRequest.ID,
+		Name:           productRequest.Name,
 		Desc:           productRequest.Desc,
 		Category:       productRequest.Category,
 		Images:         urls,
@@ -239,6 +240,7 @@ func (pr *productRequestService) GetTravelerProductRequestsByUserID(id string) (
 
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
 			ID:             productRequest.ID,
+			Name:           productRequest.Name,
 			Desc:           productRequest.Desc,
 			Category:       productRequest.Category,
 			Images:         urls,
@@ -277,6 +279,7 @@ func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]d
 
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
 			ID:             productRequest.ID,
+			Name:           productRequest.Name,
 			Desc:           productRequest.Desc,
 			Category:       productRequest.Category,
 			Images:         urls,
@@ -316,6 +319,7 @@ func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*
 		}
 		productRequestRes := dto.DetailOfProductRequestResponseDTO{
 			ID:             productRequest.ID,
+			Name:           productRequest.Name,
 			Desc:           productRequest.Desc,
 			Category:       productRequest.Category,
 			Images:         urls,
