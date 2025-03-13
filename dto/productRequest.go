@@ -23,14 +23,14 @@ type UpdateProductRequestStatusDTO struct {
 }
 
 type CreateProductRequestRequestDTO struct {
-	Name         string         `json:"name" validate:"required"`
-	Desc         string         `json:"desc" validate:"required"`
-	Budget       float64        `json:"budget" validate:"required,gt=0"`
-	Quantity     uint           `json:"quantity" validate:"required,gt=0"`
-	Category     types.Category `json:"category" validate:"required,category"`
-	From         string         `json:"from" validate:"required"`
-	To           string         `json:"to" validate:"required"`
-	CheckService bool           `json:"check_service validate:"required"`
+	Name         string         `json:"name" form:"name" validate:"required"`
+	Desc         string         `json:"desc" form:"desc" validate:"required"`
+	Budget       float64        `json:"budget" form:"budget" validate:"required,gt=0"`
+	Quantity     uint           `json:"quantity" form:"quantity" validate:"required,gt=0"`
+	Category     types.Category `json:"category" form:"category" validate:"required,category"`
+	From         string         `json:"from" form:"from" validate:"required"`
+	To           string         `json:"to" form:"to" validate:"required"`
+	CheckService bool           `json:"check_service form:"check_service" validate:"required"`
 }
 
 type CreateProductRequestResponseDTO struct {

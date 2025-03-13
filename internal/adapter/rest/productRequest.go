@@ -123,6 +123,14 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 	claims := c.Locals("user").(jwt.MapClaims)
 	userID, _ := claims["id"].(string)
 
+	checkServiceStr := c.FormValue("check_service")
+	checkService, err := strconv.ParseBool(checkServiceStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
 	fileHeaders, err := c.MultipartForm()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -145,6 +153,8 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 		})
 	}
 
+	req.CheckService = checkService
+
 	validationErr := util.ValidateStruct(req)
 	if validationErr != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -153,16 +163,17 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 	}
 
 	productRequest := domain.ProductRequest{
-		Name:     req.Name,
-		Desc:     req.Desc,
-		Budget:   req.Budget,
-		Quantity: req.Quantity,
-		Category: req.Category,
-		Offers:   []domain.Offer{},
-		Images:   []string{},
-		UserID:   &userID,
-		From:     req.From,
-		To:       req.To,
+		Name:         req.Name,
+		Desc:         req.Desc,
+		Budget:       req.Budget,
+		Quantity:     req.Quantity,
+		Category:     req.Category,
+		Offers:       []domain.Offer{},
+		Images:       []string{},
+		UserID:       &userID,
+		From:         req.From,
+		To:           req.To,
+		CheckService: req.CheckService,
 	}
 
 	err = pr.service.CreateProductRequest(&productRequest, files, fileReaders)
@@ -185,9 +196,10 @@ func (pr *productRequestHandler) CreateProductRequest(c *fiber.Ctx) error {
 		Quantity: productRequest.Quantity,
 		Category: productRequest.Category,
 
-		UserID: productRequest.UserID,
-		From:   productRequest.From,
-		To:     productRequest.To,
+		UserID:       productRequest.UserID,
+		From:         productRequest.From,
+		To:           productRequest.To,
+		CheckService: productRequest.CheckService,
 
 		CreatedAt: productRequest.CreatedAt,
 		UpdatedAt: productRequest.UpdatedAt,
