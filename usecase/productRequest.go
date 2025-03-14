@@ -82,7 +82,7 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 			if offer.UserID != userID {
 				return nil, exception.ErrPermissionDenied
 			}
-			if req.DeliveryStatus != types.Purchased && req.DeliveryStatus != types.Cancel {
+			if req.DeliveryStatus != types.Purchased && req.DeliveryStatus != types.Cancel && req.DeliveryStatus != types.PickedUp {
 				return nil, exception.ErrPermissionDenied
 			}
 

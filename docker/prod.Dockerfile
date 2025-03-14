@@ -24,7 +24,7 @@ WORKDIR /app
 
 EXPOSE 9090
 
-COPY --from=builder /app/assets /app/
+COPY --from=builder /app/assets /app/assets/
 COPY --from=builder /app/bin/engine /app/
 COPY --from=builder /app/bin/migrate /app/
 
