@@ -17,11 +17,11 @@ const (
 var AllowedStatusTransitions = map[DeliveryStatus]map[DeliveryStatus]bool{
 	Opening:        {Pending: true, Cancel: true},
 	Pending:        {Purchased: true, Cancel: true},
-	Purchased:      {PickedUp: true, Cancel: false},
-	PickedUp:       {OutForDelivery: true, Returned: true, Cancel: false},
-	OutForDelivery: {Delivered: true, Returned: true, Cancel: false},
-	Delivered:      {Refunded: true, Returned: true, Cancel: false},
-	Refunded:       {Returned: true, Cancel: false},
+	Purchased:      {PickedUp: true},
+	PickedUp:       {OutForDelivery: true, Returned: true},
+	OutForDelivery: {Delivered: true, Returned: true},
+	Delivered:      {Refunded: true, Returned: true},
+	Refunded:       {Returned: true},
 	Returned:       {},
 	Cancel:         {},
 }
