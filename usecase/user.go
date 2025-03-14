@@ -4,11 +4,13 @@ import (
 	"context"
 
 	"github.com/hewpao/hewpao-backend/domain"
+	"github.com/hewpao/hewpao-backend/dto"
 	"github.com/hewpao/hewpao-backend/repository"
 )
 
 type UserUsecase interface {
 	GetUserByID(ctx context.Context, id string) (*domain.User, error)
+	EditProfile(ctx context.Context, userID string, req dto.EditProfileDTO) error
 }
 
 type userService struct {
@@ -28,4 +30,12 @@ func (u *userService) GetUserByID(ctx context.Context, id string) (*domain.User,
 	}
 
 	return user, nil
+}
+
+func (u *userService) EditProfile(ctx context.Context, userID string, req dto.EditProfileDTO) error {
+	if err := u.userRepo.EditProfile(ctx, userID, req); err != nil {
+		return err
+	}
+
+	return nil
 }

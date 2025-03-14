@@ -54,6 +54,7 @@ func main() {
 
 	userRepo := gorm.NewUserGormRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
+	userHandler := rest.NewUserHandler(userUsecase)
 
 	notificationRepoFactory := repository.NewNotificationRepositoryFactory()
 	emailRepo, err := notitype.NewEmailNotificationRepo(message, &cfg)
@@ -126,6 +127,10 @@ func main() {
 	authRoute.Post("/login", authHandler.LoginWithCredentials)
 	authRoute.Post("/login/oauth", authHandler.LoginWithOAuth)
 	authRoute.Post("/register", authHandler.Register)
+
+	userRoute := app.Group("/profile", middleware.AuthMiddleware(&cfg))
+	userRoute.Get("/me", userHandler.GetMyProfile)
+	userRoute.Put("/edit", userHandler.EditMyProfile)
 
 	productRequestRoute := app.Group("/product-requests", middleware.AuthMiddleware(&cfg))
 	productRequestRoute.Post("/", productRequestHandler.CreateProductRequest)

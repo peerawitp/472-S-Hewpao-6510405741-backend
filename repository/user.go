@@ -12,4 +12,5 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 	Create(ctx context.Context, req dto.CreateUserDTO) error
 	UpdateVerification(ctx context.Context, req *domain.User) error
+	EditProfile(ctx context.Context, userID string, req dto.EditProfileDTO) error
 }

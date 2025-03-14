@@ -72,3 +72,23 @@ func (u *UserGormRepository) Create(ctx context.Context, req dto.CreateUserDTO) 
 	}
 	return nil
 }
+
+func (u *UserGormRepository) EditProfile(ctx context.Context, userID string, req dto.EditProfileDTO) error {
+	user := domain.User{}
+	err := u.db.Where("id = ?", userID).First(&user).Error
+	if err != nil {
+		return err
+	}
+
+	user.Name = req.Name
+	user.MiddleName = req.MiddleName
+	user.Surname = req.Surname
+	user.PhoneNumber = req.PhoneNumber
+
+	err = u.db.Save(&user).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
