@@ -42,6 +42,10 @@ func (o *offerService) CreateOffer(req *dto.CreateOfferDTO, userID string) error
 		return err
 	}
 
+	if userID == *productRequest.UserID {
+		return exception.ErrCouldNotSelfOffer
+	}
+
 	user, err := o.userRepo.FindByID(o.ctx, userID)
 	if err != nil {
 		return err

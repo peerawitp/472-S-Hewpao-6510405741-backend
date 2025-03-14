@@ -23,5 +23,6 @@ var (
 	ErrDuplicateTravelerPayoutAccount = errors.New("duplicate traveler payout account")
 	ErrBankNotFound                   = errors.New("bank not found")
 
-	ErrOfferNotFound = errors.New("offer not found")
+	ErrOfferNotFound     = errors.New("offer not found")
+	ErrCouldNotSelfOffer = errors.New("could not commit self offering")
 )
