@@ -79,18 +79,28 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
 				return nil, err
 			}
 
-			if offer.UserID != userID {
-				return nil, exception.ErrPermissionDenied
+			allowedTravelerTransitions := map[types.DeliveryStatus]bool{
+				types.Purchased: true,
+				types.PickedUp:  true,
+				types.Cancel:    true,
 			}
-			if req.DeliveryStatus != types.Purchased && req.DeliveryStatus != types.Cancel && req.DeliveryStatus != types.PickedUp {
+
+			if !allowedTravelerTransitions[req.DeliveryStatus] ||
+				!types.AllowedStatusTransitions[productRequest.DeliveryStatus][req.DeliveryStatus] {
 				return nil, exception.ErrPermissionDenied
 			}
 
-		case false: // buyer > cancel
+		case false: // Buyer: Allowed to transition only to Cancel
 			if *productRequest.UserID != userID {
 				return nil, exception.ErrPermissionDenied
 			}
-			if req.DeliveryStatus != types.Cancel {
+
+			allowedBuyerTransitions := map[types.DeliveryStatus]bool{
+				types.Cancel: true,
+			}
+
+			if !allowedBuyerTransitions[req.DeliveryStatus] ||
+				!types.AllowedStatusTransitions[productRequest.DeliveryStatus][req.DeliveryStatus] {
 				return nil, exception.ErrPermissionDenied
 			}
 		}
