@@ -172,6 +172,7 @@ func (a *authService) LoginWithOAuth(ctx context.Context, req dto.LoginWithOAuth
 		Name:        user.Name,
 		MiddleName:  user.MiddleName,
 		Surname:     user.Surname,
+		IsVerified:  user.IsVerified,
 		AccessToken: tokenString,
 	}
 
