@@ -98,7 +98,7 @@ func main() {
 	checkoutUsecase := usecase.NewCheckoutUsecase(userRepo, productRequestRepo, transactionRepo, &paymentRepoFactory, &cfg, minioRepo, ctx)
 	checkoutHandler := rest.NewCheckoutHandler(checkoutUsecase)
 
-	stripeWebhookHandler := webhook.NewStripeWebhookHandler(&cfg, checkoutUsecase)
+	stripeWebhookHandler := webhook.NewStripeWebhookHandler(&cfg, checkoutUsecase, transactionUsecase, productRequestUsecase)
 
 	messageRepo := gorm.NewMessageGormRepo(db)
 	messageUsecase := usecase.NewMessageService(messageRepo)

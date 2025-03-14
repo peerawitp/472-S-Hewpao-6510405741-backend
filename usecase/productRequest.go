@@ -27,6 +27,7 @@ type ProductRequestUsecase interface {
 	GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error)
 	UpdateProductRequest(req *dto.UpdateProductRequestDTO, prID int, userID string) error
 	UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) (*domain.ProductRequest, error)
+	UpdateProductRequestStatusAfterPaid(prID int) error
 }
 
 type productRequestService struct {
@@ -373,6 +374,21 @@ func (pr *productRequestService) CancleProductRequest(prID int, userID string) e
 	}
 
 	err = pr.repo.Delete(productRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *productRequestService) UpdateProductRequestStatusAfterPaid(prID int) error {
+	productRequest, err := pr.repo.FindByID(prID)
+	if err != nil {
+		return err
+	}
+
+	productRequest.DeliveryStatus = types.Pending
+	err = pr.repo.Update(productRequest)
 	if err != nil {
 		return err
 	}

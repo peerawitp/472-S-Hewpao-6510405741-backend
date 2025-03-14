@@ -16,6 +16,7 @@ var allowedCurrencies = map[string]bool{
 type TransactionUseCase interface {
 	CreateTransaction(userID string, amount float64, currency string) (*domain.Transaction, error)
 	GetTransactionByID(ctx context.Context, id string) (*domain.Transaction, error)
+	GetTransactionByThirdPartyPaymentID(ctx context.Context, thirdPartyPaymentID string) (*domain.Transaction, error)
 }
 
 type TransactionService struct {
@@ -47,6 +48,14 @@ func (u *TransactionService) CreateTransaction(userID string, amount float64, cu
 
 func (u *TransactionService) GetTransactionByID(ctx context.Context, id string) (*domain.Transaction, error) {
 	transaction, err := u.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return transaction, nil
+}
+
+func (u *TransactionService) GetTransactionByThirdPartyPaymentID(ctx context.Context, thirdPartyPaymentID string) (*domain.Transaction, error) {
+	transaction, err := u.repo.FindByThirdPartyPaymentID(ctx, thirdPartyPaymentID)
 	if err != nil {
 		return nil, err
 	}

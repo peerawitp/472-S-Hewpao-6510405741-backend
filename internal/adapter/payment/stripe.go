@@ -37,6 +37,17 @@ func (r *StripePaymentRepository) CreatePayment(ctx context.Context, pr *domain.
 				},
 				Quantity: stripe.Int64(int64(pr.Quantity)),
 			},
+			{
+				// fee
+				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+					Currency: stripe.String(string(stripe.CurrencyTHB)),
+					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+						Name: stripe.String("Service Fee"),
+					},
+					UnitAmount: stripe.Int64(int64(pr.Budget * 0.05 * 100)),
+				},
+				Quantity: stripe.Int64(1),
+			},
 		},
 		PaymentMethodTypes: []*string{
 			stripe.String("card"),

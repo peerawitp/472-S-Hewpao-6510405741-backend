@@ -17,14 +17,18 @@ type StripeWebhookHandler interface {
 }
 
 type stripeWebhookHandler struct {
-	cfg     *config.Config
-	service usecase.CheckoutUsecase
+	cfg       *config.Config
+	service   usecase.CheckoutUsecase
+	txService usecase.TransactionUseCase
+	prService usecase.ProductRequestUsecase
 }
 
-func NewStripeWebhookHandler(cfg *config.Config, service usecase.CheckoutUsecase) StripeWebhookHandler {
+func NewStripeWebhookHandler(cfg *config.Config, service usecase.CheckoutUsecase, txService usecase.TransactionUseCase, prService usecase.ProductRequestUsecase) StripeWebhookHandler {
 	return &stripeWebhookHandler{
-		cfg:     cfg,
-		service: service,
+		cfg:       cfg,
+		service:   service,
+		txService: txService,
+		prService: prService,
 	}
 }
 
@@ -55,6 +59,21 @@ func (s *stripeWebhookHandler) WebhookPost(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
+			})
+		}
+
+		transaction, err := s.txService.GetTransactionByThirdPartyPaymentID(c.Context(), paymentData.ID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		prID := int(*transaction.ProductRequestID)
+		updateErr := s.prService.UpdateProductRequestStatusAfterPaid(prID)
+		if updateErr != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": updateErr.Error(),
 			})
 		}
 
