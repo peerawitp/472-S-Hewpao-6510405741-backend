@@ -23,9 +23,10 @@ func NewStripePaymentRepository(cfg *config.Config) repository.PaymentRepository
 
 func (r *StripePaymentRepository) CreatePayment(ctx context.Context, pr *domain.ProductRequest) (*dto.CreatePaymentResponseDTO, error) {
 	stripe.Key = r.cfg.StripeSecretKey
+	uri := "https://hewpao-fe.peerawitp.me/my-product/"
 
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String("https://hewpao-fe.peerawitp.me/my-product/" + string(pr.ID)),
+		SuccessURL: stripe.String(uri),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
