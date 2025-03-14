@@ -37,8 +37,8 @@ func main() {
 	app.Use(logger.New())
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000", // Allow requests from the frontend
-		AllowMethods: "GET,POST,PUT,DELETE",   // Allow specific HTTP methods
+		AllowOrigins: "http://localhost:3000, https://hewpao-fe.peerawitp.me", // Allow requests from the frontend
+		AllowMethods: "GET,POST,PUT,DELETE",                                   // Allow specific HTTP methods
 		AllowHeaders: "Content-Type,Authorization",
 	}))
 
