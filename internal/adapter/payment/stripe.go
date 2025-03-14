@@ -25,7 +25,7 @@ func (r *StripePaymentRepository) CreatePayment(ctx context.Context, pr *domain.
 	stripe.Key = r.cfg.StripeSecretKey
 
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String("https://example.com/success"),
+		SuccessURL: stripe.String("https://hewpao-fe.peerawitp.me/my-product/" + string(pr.ID)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
