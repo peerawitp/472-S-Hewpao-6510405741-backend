@@ -1,7 +1,7 @@
-FROM golang:1.23.5-alpine as builder
+FROM golang:1.23.5-alpine AS builder
 
 RUN apk update && apk upgrade && \
-  apk --update add git make bash build-base
+  apk --update add bash build-base git make
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN make build
 RUN make build-migrate
 
 # Distribution
-FROM alpine:latest
+FROM alpine:3.21.3
 
 RUN apk update && apk upgrade && \
   apk --update --no-cache add tzdata && \
@@ -28,4 +28,4 @@ COPY --from=builder /app/assets /app/assets/
 COPY --from=builder /app/bin/engine /app/
 COPY --from=builder /app/bin/migrate /app/
 
-CMD /app/engine
+CMD ["/app/engine"]
