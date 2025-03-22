@@ -17,6 +17,7 @@ type TransactionUseCase interface {
 	CreateTransaction(userID string, amount float64, currency string) (*domain.Transaction, error)
 	GetTransactionByID(ctx context.Context, id string) (*domain.Transaction, error)
 	GetTransactionByThirdPartyPaymentID(ctx context.Context, thirdPartyPaymentID string) (*domain.Transaction, error)
+	GetTransactionsByUserID(ctx context.Context, userID string) ([]*domain.Transaction, error)
 }
 
 type TransactionService struct {
@@ -60,4 +61,13 @@ func (u *TransactionService) GetTransactionByThirdPartyPaymentID(ctx context.Con
 		return nil, err
 	}
 	return transaction, nil
+}
+
+func (u *TransactionService) GetTransactionsByUserID(ctx context.Context, userID string) ([]*domain.Transaction, error) {
+	transactions, err := u.repo.FindByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }

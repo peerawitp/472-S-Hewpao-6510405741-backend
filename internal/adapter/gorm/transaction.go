@@ -44,3 +44,11 @@ func (r *TransactionRepository) FindByThirdPartyPaymentID(ctx context.Context, t
 func (r *TransactionRepository) UpdateStatusByThirdPartyPaymentID(ctx context.Context, thirdPartyPaymentID string, status types.PaymentStatus) error {
 	return r.db.Model(&domain.Transaction{}).Where("third_party_payment_id = ?", thirdPartyPaymentID).Update("status", status).Error
 }
+
+func (r *TransactionRepository) FindByUserID(ctx context.Context, userID string) ([]*domain.Transaction, error) {
+	var transactions []*domain.Transaction
+	if err := r.db.Where("user_id = ?", userID).Find(&transactions).Error; err != nil {
+		return nil, err
+	}
+	return transactions, nil
+}

@@ -152,7 +152,7 @@ func main() {
 
 	transactionRoute := app.Group("/transactions", middleware.AuthMiddleware(&cfg))
 	transactionRoute.Post("/", transactionHandler.CreateTransaction)
-	transactionRoute.Get("/:id", transactionHandler.GetTransactionByID)
+	transactionRoute.Get("/get-user-tx", transactionHandler.GetTransactionByUserID)
 
 	checkoutRoute := app.Group("/checkout", middleware.AuthMiddleware(&cfg))
 	checkoutRoute.Post("/gateway", checkoutHandler.CheckoutWithPaymentGateway)
