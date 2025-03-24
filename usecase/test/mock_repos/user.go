@@ -19,7 +19,10 @@ func (mu *MockUserRepo) FindByID(ctx context.Context, id string) (*domain.User, 
 
 func (mu *MockUserRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
 	args := mu.Called(ctx, email)
-	return args.Get(0).(*domain.User), args.Error(1)
+	if user, ok := args.Get(0).(*domain.User); ok {
+		return user, args.Error(1)
+	}
+	return nil, args.Error(1)
 }
 
 func (mu *MockUserRepo) Create(ctx context.Context, req dto.CreateUserDTO) error {

@@ -39,6 +39,10 @@ func NewAuthUsecase(userRepo repository.UserRepository, oauthRepoFactory *reposi
 }
 
 func (a *authService) GetJWT(user *domain.User) (string, error) {
+	if a.cfg.JWTSecret == "" {
+		return "", exception.ErrJWTSecretIsEmpty
+	}
+
 	expiredAt := time.Now().Add(time.Hour * 24) // 1 day
 	claims := jwt.MapClaims{
 		"id":          user.ID,
@@ -121,7 +125,7 @@ func (a *authService) Register(ctx context.Context, req dto.RegisterUserRequestD
 		Password:   &req.Password,
 	})
 	if createErr != nil {
-		return err
+		return createErr
 	}
 
 	return nil
