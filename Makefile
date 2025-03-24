@@ -37,3 +37,6 @@ build-image:
 		--file ./docker/prod.Dockerfile \
 		--tag hewpao/hewpao-backend \
 		.
+
+test:
+	@ go test -v -cover ./usecase/
