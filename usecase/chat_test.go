@@ -3,6 +3,7 @@ package usecase_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/hewpao/hewpao-backend/domain"
 	"github.com/hewpao/hewpao-backend/usecase"
@@ -10,6 +11,7 @@ import (
 	
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 func TestCreateChat(t *testing.T) {
@@ -37,7 +39,16 @@ func TestCreateChat(t *testing.T) {
 		mockRepo.ExpectedCalls = nil
 		
 		chatName := "existing-chat"
-		existingChat := &domain.Chat{Name: chatName}
+		now := time.Now()
+		existingChat := &domain.Chat{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			Name:    chatName,
+			Message: "Initial message",
+		}
 		
 		mockRepo.On("GetByName", chatName).Return(existingChat).Once()
 
@@ -74,8 +85,15 @@ func TestGetChatByID(t *testing.T) {
 		mockRepo.ExpectedCalls = nil
 		
 		chatID := uint(1)
+		now := time.Now()
 		expectedChat := &domain.Chat{
-			Name: "test-chat",
+			Model: gorm.Model{
+				ID:        chatID,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			Name:    "test-chat",
+			Message: "Welcome to test chat!",
 		}
 
 		mockRepo.On("GetByID", chatID).Return(expectedChat, nil).Once()
@@ -84,6 +102,9 @@ func TestGetChatByID(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedChat, chat)
+		assert.Equal(t, chatID, chat.ID)
+		assert.Equal(t, "test-chat", chat.Name)
+		assert.Equal(t, "Welcome to test chat!", chat.Message)
 
 		mockRepo.AssertExpectations(t)
 	})
@@ -93,7 +114,15 @@ func TestGetChatByID(t *testing.T) {
 		
 		chatID := uint(1)
 		expectedError := errors.New("database error")
-		expectedChat := &domain.Chat{}  
+		now := time.Now()
+		expectedChat := &domain.Chat{
+			Model: gorm.Model{
+				ID:        0,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			Message: "",
+		}  
 
 		mockRepo.On("GetByID", chatID).Return(expectedChat, expectedError).Once()
 
@@ -114,16 +143,27 @@ func TestGetByName(t *testing.T) {
 		mockRepo.ExpectedCalls = nil
 		
 		chatName := "test-chat"
+		now := time.Now()
 		expectedChat := &domain.Chat{
-			Name: chatName,
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			Name:    chatName,
+			Message: "Welcome to test chat!",
 		}
 
+		// The GetByName method is called twice in our usecase implementation
 		mockRepo.On("GetByName", chatName).Return(expectedChat).Times(2)
 
 		chat := chatUsecase.GetByName(chatName)
 
 		assert.NotNil(t, chat)
 		assert.Equal(t, expectedChat, chat)
+		assert.Equal(t, uint(1), chat.ID)
+		assert.Equal(t, chatName, chat.Name)
+		assert.Equal(t, "Welcome to test chat!", chat.Message)
 
 		mockRepo.AssertExpectations(t)
 	})
