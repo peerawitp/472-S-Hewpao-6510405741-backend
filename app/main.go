@@ -24,7 +24,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-func main() {
+func setup() *fiber.App {
 	app := fiber.New()
 	cfg := config.NewConfig()
 	db := bootstrap.NewDB(&cfg)
@@ -176,5 +176,10 @@ func main() {
 	messageRoute.Get("/message/:id", messageHandler.GetByID)
 	messageRoute.Post("/create", messageHandler.CreateMessage)
 
+	return app
+}
+
+func main() {
+	app := setup()
 	app.Listen(":9090")
 }
