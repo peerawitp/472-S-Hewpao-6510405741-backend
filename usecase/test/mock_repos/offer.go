@@ -16,6 +16,7 @@ func (mo *MockOfferRepo) Create(req *domain.Offer) error {
 
 func (mo *MockOfferRepo) GetByID(req *domain.Offer) error {
 	args := mo.Called(req)
+	req.UserID = "traveler123"
 	return args.Error(0)
 }
 
