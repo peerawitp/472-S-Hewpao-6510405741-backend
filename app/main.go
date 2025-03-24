@@ -153,6 +153,7 @@ func setup() *fiber.App {
 	transactionRoute := app.Group("/transactions", middleware.AuthMiddleware(&cfg))
 	transactionRoute.Post("/", transactionHandler.CreateTransaction)
 	transactionRoute.Get("/get-user-tx", transactionHandler.GetTransactionByUserID)
+	transactionRoute.Get("/get/:id", transactionHandler.GetTransactionByID)
 
 	checkoutRoute := app.Group("/checkout", middleware.AuthMiddleware(&cfg))
 	checkoutRoute.Post("/gateway", checkoutHandler.CheckoutWithPaymentGateway)
