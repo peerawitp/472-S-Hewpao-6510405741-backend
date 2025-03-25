@@ -16,7 +16,9 @@ func (mp *MockProductRequestRepo) Create(productRequest *domain.ProductRequest) 
 
 func (mp *MockProductRequestRepo) FindByID(id int) (*domain.ProductRequest, error) {
 	args := mp.Called(id)
-	return args.Get(0).(*domain.ProductRequest), args.Error(1)
+	ret0, _ := args.Get(0).(*domain.ProductRequest)
+	ret1, _ := args.Get(1).(error)
+	return ret0, ret1
 }
 
 func (mp *MockProductRequestRepo) FindByUserID(id string) ([]domain.ProductRequest, error) {
