@@ -69,13 +69,13 @@
 				
 				<option value="file6">github.com/hewpao/hewpao-backend/usecase/productRequest.go (0.0%)</option>
 				
-				<option value="file7">github.com/hewpao/hewpao-backend/usecase/transaction.go (95.0%)</option>
+				<option value="file7">github.com/hewpao/hewpao-backend/usecase/transaction.go (100.0%)</option>
 				
-				<option value="file8">github.com/hewpao/hewpao-backend/usecase/travelerPayoutAccount.go (0.0%)</option>
+				<option value="file8">github.com/hewpao/hewpao-backend/usecase/travelerPayoutAccount.go (100.0%)</option>
 				
 				<option value="file9">github.com/hewpao/hewpao-backend/usecase/user.go (100.0%)</option>
 				
-				<option value="file10">github.com/hewpao/hewpao-backend/usecase/verification.go (0.0%)</option>
+				<option value="file10">github.com/hewpao/hewpao-backend/usecase/verification.go (72.3%)</option>
 				
 				</select>
 			</div>
@@ -1114,7 +1114,7 @@ func NewTransactionService(tr repository.TransactionRepository) *TransactionServ
 }</span>
 
 func (u *TransactionService) CreateTransaction(userID string, amount float64, currency string) (*domain.Transaction, error) <span class="cov8" title="1">{
-        if _, exists := allowedCurrencies[currency]; !exists </span><span class="cov0" title="0">{
+        if _, exists := allowedCurrencies[currency]; !exists </span><span class="cov8" title="1">{
                 return nil, errors.New("unsupported currency")
         }</span>
 
@@ -1180,7 +1180,7 @@ type travelerPayoutAccountService struct {
         bankRepo repository.BankRepository
 }
 
-func NewTravelerPayoutAccountService(ctx context.Context, repo repository.TravelerPayoutAccountRepository, bankRepo repository.BankRepository) TravelerPayoutAccountUsecase <span class="cov0" title="0">{
+func NewTravelerPayoutAccountService(ctx context.Context, repo repository.TravelerPayoutAccountRepository, bankRepo repository.BankRepository) TravelerPayoutAccountUsecase <span class="cov8" title="1">{
         return &amp;travelerPayoutAccountService{
                 ctx:      ctx,
                 repo:     repo,
@@ -1188,13 +1188,13 @@ func NewTravelerPayoutAccountService(ctx context.Context, repo repository.Travel
         }
 }</span>
 
-func (t *travelerPayoutAccountService) CreateTravelerPayoutAccount(userID string, req *dto.CreateTravelerPayoutAccountRequestDTO) error <span class="cov0" title="0">{
+func (t *travelerPayoutAccountService) CreateTravelerPayoutAccount(userID string, req *dto.CreateTravelerPayoutAccountRequestDTO) error <span class="cov8" title="1">{
         bank, err := t.bankRepo.GetBySwift(req.BankSwift)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">account := &amp;domain.TravelerPayoutAccount{
+        <span class="cov8" title="1">account := &amp;domain.TravelerPayoutAccount{
                 UserID:        userID,
                 AccountName:   req.AccountName,
                 AccountNumber: req.AccountNumber,
@@ -1202,33 +1202,33 @@ func (t *travelerPayoutAccountService) CreateTravelerPayoutAccount(userID string
         }
 
         storeErr := t.repo.Store(t.ctx, account)
-        if storeErr != nil </span><span class="cov0" title="0">{
+        if storeErr != nil </span><span class="cov8" title="1">{
                 return storeErr
         }</span>
 
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
-func (t *travelerPayoutAccountService) GetAccountsByUserID(userID string) (*dto.GetTravelerPayoutAccountResponseDTO, error) <span class="cov0" title="0">{
+func (t *travelerPayoutAccountService) GetAccountsByUserID(userID string) (*dto.GetTravelerPayoutAccountResponseDTO, error) <span class="cov8" title="1">{
         accounts, err := t.repo.FindByUserID(t.ctx, userID)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">res := &amp;dto.GetTravelerPayoutAccountResponseDTO{
+        <span class="cov8" title="1">res := &amp;dto.GetTravelerPayoutAccountResponseDTO{
                 Accounts: accounts,
         }
 
         return res, nil</span>
 }
 
-func (t *travelerPayoutAccountService) GetAllAvailableBank() (*dto.GetAllAvailableBankResponseDTO, error) <span class="cov0" title="0">{
+func (t *travelerPayoutAccountService) GetAllAvailableBank() (*dto.GetAllAvailableBankResponseDTO, error) <span class="cov8" title="1">{
         banks, err := t.bankRepo.GetAll()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">res := &amp;dto.GetAllAvailableBankResponseDTO{
+        <span class="cov8" title="1">res := &amp;dto.GetAllAvailableBankResponseDTO{
                 Banks: banks,
         }
 
@@ -1310,7 +1310,7 @@ type verificationService struct {
         ekycRepoFactory  repository.EKYCRepositoryFactory
 }
 
-func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository, verificationRepo repository.VerificationRepository, ekycRepoFactory repository.EKYCRepositoryFactory) VerificationUsecase <span class="cov0" title="0">{
+func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository, verificationRepo repository.VerificationRepository, ekycRepoFactory repository.EKYCRepositoryFactory) VerificationUsecase <span class="cov8" title="1">{
         return &amp;verificationService{
                 minioRepo:        minioRepo,
                 ctx:              ctx,
@@ -1321,31 +1321,31 @@ func NewVerificationService(minioRepo repository.S3Repository, ctx context.Conte
         }
 }</span>
 
-func (v *verificationService) UpdateIsVerified(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error <span class="cov0" title="0">{
+func (v *verificationService) UpdateIsVerified(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error <span class="cov8" title="1">{
         instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">if instructor.Role != types.Admin </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if instructor.Role != types.Admin </span><span class="cov0" title="0">{
                 return exception.ErrPermissionDenied
         }</span>
 
-        <span class="cov0" title="0">user, err := v.userRepo.FindByEmail(v.ctx, userEmail)
+        <span class="cov8" title="1">user, err := v.userRepo.FindByEmail(v.ctx, userEmail)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">user.IsVerified = req.Isverified
+        <span class="cov8" title="1">user.IsVerified = req.Isverified
         err = v.userRepo.UpdateVerification(v.ctx, user)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
-func newVerification(res *dto.EKYCResponseDTO, userID string, cardImageURI string) *domain.Verification <span class="cov0" title="0">{
+func newVerification(res *dto.EKYCResponseDTO, userID string, cardImageURI string) *domain.Verification <span class="cov8" title="1">{
         return &amp;domain.Verification{
                 UserID:      userID,
                 CardImage:   &amp;cardImageURI,
@@ -1369,59 +1369,59 @@ func newVerification(res *dto.EKYCResponseDTO, userID string, cardImageURI strin
         }
 }</span>
 
-func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string, provider string) error <span class="cov0" title="0">{
+func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string, provider string) error <span class="cov8" title="1">{
         ekyc, err := v.ekycRepoFactory.GetRepository(provider)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">user, err := v.userRepo.FindByID(v.ctx, userID)
+        <span class="cov8" title="1">user, err := v.userRepo.FindByID(v.ctx, userID)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">uploadInfo, err := v.minioRepo.UploadFile(v.ctx, file.Filename, reader, file.Size, file.Header.Get("Content-Type"), "verification-images")
+        <span class="cov8" title="1">uploadInfo, err := v.minioRepo.UploadFile(v.ctx, file.Filename, reader, file.Size, file.Header.Get("Content-Type"), "verification-images")
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">uri := uploadInfo.Bucket + "/" + uploadInfo.Key
+        <span class="cov8" title="1">uri := uploadInfo.Bucket + "/" + uploadInfo.Key
 
         res, err := ekyc.Verify(file)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">verification := newVerification(res, user.ID, uri)
+        <span class="cov8" title="1">verification := newVerification(res, user.ID, uri)
         if err := v.verificationRepo.Create(verification); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
-func (v *verificationService) GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error <span class="cov0" title="0">{
+func (v *verificationService) GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error <span class="cov8" title="1">{
         instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">if instructor.Role != types.Admin </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if instructor.Role != types.Admin </span><span class="cov0" title="0">{
                 return exception.ErrPermissionDenied
         }</span>
 
-        <span class="cov0" title="0">verification, err := v.verificationRepo.FindByID(verificationID)
+        <span class="cov8" title="1">verification, err := v.verificationRepo.FindByID(verificationID)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">images := []string{*verification.CardImage}
+        <span class="cov8" title="1">images := []string{*verification.CardImage}
         urls, err := util.GetUrls(v.minioRepo, v.ctx, &amp;v.cfg, images)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">*info = *verification
+        <span class="cov8" title="1">*info = *verification
         *info.CardImage = urls[0]
 
         return nil</span>

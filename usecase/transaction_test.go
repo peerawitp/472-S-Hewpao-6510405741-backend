@@ -47,6 +47,19 @@ func TestCreateTransaction(t *testing.T) {
 		mockTransactionRepo.AssertExpectations(t)
 	})
 
+	t.Run("Error_UnsupportedCurrency", func(t *testing.T) {
+		mockTransactionRepo.ExpectedCalls = nil
+
+		unsupportedCurrency := "alkwjdS"
+
+		_, err := transactionService.CreateTransaction(expectedTransaction.UserID, expectedTransaction.Amount, unsupportedCurrency)
+
+		assert.Error(t, err)
+		assert.Equal(t, errors.New("unsupported currency"), err)
+
+		mockTransactionRepo.AssertExpectations(t)
+	})
+
 	t.Run("Error_StoreTransaction", func(t *testing.T) {
 		mockTransactionRepo.ExpectedCalls = nil
 
