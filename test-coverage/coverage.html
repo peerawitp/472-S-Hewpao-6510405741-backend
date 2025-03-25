@@ -67,7 +67,7 @@
 				
 				<option value="file5">github.com/hewpao/hewpao-backend/usecase/offer.go (100.0%)</option>
 				
-				<option value="file6">github.com/hewpao/hewpao-backend/usecase/productRequest.go (0.0%)</option>
+				<option value="file6">github.com/hewpao/hewpao-backend/usecase/productRequest.go (61.0%)</option>
 				
 				<option value="file7">github.com/hewpao/hewpao-backend/usecase/transaction.go (100.0%)</option>
 				
@@ -720,7 +720,7 @@ type productRequestService struct {
         message   *gomail.Message
 }
 
-func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, chatRepo repository.ChatRepository, cfg *config.Config, message *gomail.Message) ProductRequestUsecase <span class="cov0" title="0">{
+func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, chatRepo repository.ChatRepository, cfg *config.Config, message *gomail.Message) ProductRequestUsecase <span class="cov8" title="1">{
         return &amp;productRequestService{
                 repo:      repo,
                 minioRepo: minioRepo,
@@ -733,32 +733,32 @@ func NewProductRequestService(repo repository.ProductRequestRepository, minioRep
         }
 }</span>
 
-func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) (*domain.ProductRequest, error) <span class="cov0" title="0">{
+func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) (*domain.ProductRequest, error) <span class="cov8" title="1">{
         productRequest, err := pr.repo.FindByID(prID)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">user, err := pr.userRepo.FindByID(pr.ctx, userID)
+        <span class="cov8" title="1">user, err := pr.userRepo.FindByID(pr.ctx, userID)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">if user.Role != types.Admin </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if user.Role != types.Admin </span><span class="cov8" title="1">{
                 switch user.IsVerified </span>{
-                case true:<span class="cov0" title="0"> // traveler &gt; purchase + cancel
+                case true:<span class="cov8" title="1"> // traveler &gt; purchase + cancel
                         if productRequest.SelectedOfferID == nil </span><span class="cov0" title="0">{
                                 return nil, exception.ErrCouldNotUpdateStatus
                         }</span>
 
-                        <span class="cov0" title="0">offer := new(domain.Offer)
+                        <span class="cov8" title="1">offer := new(domain.Offer)
                         offer.ID = *productRequest.SelectedOfferID
                         err = pr.offerRepo.GetByID(offer)
                         if err != nil </span><span class="cov0" title="0">{
                                 return nil, err
                         }</span>
 
-                        <span class="cov0" title="0">allowedTravelerTransitions := map[types.DeliveryStatus]bool{
+                        <span class="cov8" title="1">allowedTravelerTransitions := map[types.DeliveryStatus]bool{
                                 types.Purchased: true,
                                 types.PickedUp:  true,
                                 types.Cancel:    true,
@@ -769,12 +769,12 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
                                 return nil, exception.ErrPermissionDenied
                         }</span>
 
-                case false:<span class="cov0" title="0"> // Buyer: Allowed to transition only to Cancel
+                case false:<span class="cov8" title="1"> // Buyer: Allowed to transition only to Cancel
                         if *productRequest.UserID != userID </span><span class="cov0" title="0">{
                                 return nil, exception.ErrPermissionDenied
                         }</span>
 
-                        <span class="cov0" title="0">allowedBuyerTransitions := map[types.DeliveryStatus]bool{
+                        <span class="cov8" title="1">allowedBuyerTransitions := map[types.DeliveryStatus]bool{
                                 types.Cancel: true,
                         }
 
@@ -785,14 +785,14 @@ func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProdu
                 }
         }
 
-        <span class="cov0" title="0">productRequest.DeliveryStatus = req.DeliveryStatus
+        <span class="cov8" title="1">productRequest.DeliveryStatus = req.DeliveryStatus
 
         err = pr.repo.Update(productRequest)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">return productRequest, nil</span>
+        <span class="cov8" title="1">return productRequest, nil</span>
 }
 
 func (pr *productRequestService) UpdateProductRequest(req *dto.UpdateProductRequestDTO, prID int, userID string) error <span class="cov0" title="0">{
@@ -846,27 +846,27 @@ func (pr *productRequestService) UpdateProductRequest(req *dto.UpdateProductRequ
         <span class="cov0" title="0">return nil</span>
 }
 
-func (pr *productRequestService) CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error <span class="cov0" title="0">{
+func (pr *productRequestService) CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error <span class="cov8" title="1">{
         uploadInfos := []minio.UploadInfo{}
-        for i, file := range files </span><span class="cov0" title="0">{
+        for i, file := range files </span><span class="cov8" title="1">{
                 reader := readers[i]
 
                 uploadInfo, err := pr.minioRepo.UploadFile(pr.ctx, file.Filename, reader, file.Size, file.Header.Get("Content-Type"), "product-request-images")
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         return err
                 }</span>
 
-                <span class="cov0" title="0">uploadInfos = append(uploadInfos, uploadInfo)</span>
+                <span class="cov8" title="1">uploadInfos = append(uploadInfos, uploadInfo)</span>
         }
 
-        <span class="cov0" title="0">uris := []string{}
+        <span class="cov8" title="1">uris := []string{}
 
-        for _, uploadInfo := range uploadInfos </span><span class="cov0" title="0">{
+        for _, uploadInfo := range uploadInfos </span><span class="cov8" title="1">{
                 uri := uploadInfo.Bucket + "/" + uploadInfo.Key
                 uris = append(uris, uri)
         }</span>
 
-        <span class="cov0" title="0">productRequest.Images = uris
+        <span class="cov8" title="1">productRequest.Images = uris
 
         chatName := productRequest.Name
         newChat := domain.Chat{
@@ -874,30 +874,30 @@ func (pr *productRequestService) CreateProductRequest(productRequest *domain.Pro
         }
 
         err := pr.chatRepo.Create(&amp;newChat)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">productRequest.ChatID = newChat.ID
+        <span class="cov8" title="1">productRequest.ChatID = newChat.ID
 
         err = pr.repo.Create(productRequest)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
-func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error) <span class="cov0" title="0">{
+func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error) <span class="cov8" title="1">{
         productRequest, err := pr.repo.FindByID(id)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+        <span class="cov8" title="1">urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">res := dto.DetailOfProductRequestResponseDTO{
+        <span class="cov8" title="1">res := dto.DetailOfProductRequestResponseDTO{
                 ID:              productRequest.ID,
                 Name:            productRequest.Name,
                 Desc:            productRequest.Desc,
@@ -921,21 +921,21 @@ func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequ
         return &amp;res, nil</span>
 }
 
-func (pr *productRequestService) GetTravelerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) <span class="cov0" title="0">{
+func (pr *productRequestService) GetTravelerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) <span class="cov8" title="1">{
         productRequests, err := pr.repo.FindByOfferUserID(id)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">res := []dto.DetailOfProductRequestResponseDTO{}
+        <span class="cov8" title="1">res := []dto.DetailOfProductRequestResponseDTO{}
 
-        for _, productRequest := range productRequests </span><span class="cov0" title="0">{
+        for _, productRequest := range productRequests </span><span class="cov8" title="1">{
                 urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
 
-                <span class="cov0" title="0">productRequestRes := dto.DetailOfProductRequestResponseDTO{
+                <span class="cov8" title="1">productRequestRes := dto.DetailOfProductRequestResponseDTO{
                         ID:              productRequest.ID,
                         Name:            productRequest.Name,
                         Desc:            productRequest.Desc,
@@ -958,24 +958,24 @@ func (pr *productRequestService) GetTravelerProductRequestsByUserID(id string) (
                 res = append(res, productRequestRes)</span>
         }
 
-        <span class="cov0" title="0">return res, nil</span>
+        <span class="cov8" title="1">return res, nil</span>
 }
 
-func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) <span class="cov0" title="0">{
+func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) <span class="cov8" title="1">{
         productRequests, err := pr.repo.FindByUserID(id)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">res := []dto.DetailOfProductRequestResponseDTO{}
+        <span class="cov8" title="1">res := []dto.DetailOfProductRequestResponseDTO{}
 
-        for _, productRequest := range productRequests </span><span class="cov0" title="0">{
+        for _, productRequest := range productRequests </span><span class="cov8" title="1">{
                 urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
 
-                <span class="cov0" title="0">productRequestRes := dto.DetailOfProductRequestResponseDTO{
+                <span class="cov8" title="1">productRequestRes := dto.DetailOfProductRequestResponseDTO{
                         ID:              productRequest.ID,
                         Name:            productRequest.Name,
                         Desc:            productRequest.Desc,
@@ -998,25 +998,25 @@ func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]d
                 res = append(res, productRequestRes)</span>
         }
 
-        <span class="cov0" title="0">return res, nil</span>
+        <span class="cov8" title="1">return res, nil</span>
 }
 
-func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error) <span class="cov0" title="0">{
+func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error) <span class="cov8" title="1">{
         productRequests, totalRows, err := pr.repo.FindPaginatedProductRequests(page, limit)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">totalPages := (int(totalRows) + limit - 1) / limit
+        <span class="cov8" title="1">totalPages := (int(totalRows) + limit - 1) / limit
 
         var dest []dto.DetailOfProductRequestResponseDTO
 
-        for _, productRequest := range productRequests </span><span class="cov0" title="0">{
+        for _, productRequest := range productRequests </span><span class="cov8" title="1">{
                 urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
-                <span class="cov0" title="0">productRequestRes := dto.DetailOfProductRequestResponseDTO{
+                <span class="cov8" title="1">productRequestRes := dto.DetailOfProductRequestResponseDTO{
                         ID:              productRequest.ID,
                         Name:            productRequest.Name,
                         Desc:            productRequest.Desc,
@@ -1038,7 +1038,7 @@ func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*
                 dest = append(dest, productRequestRes)</span>
         }
 
-        <span class="cov0" title="0">res := dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO]{
+        <span class="cov8" title="1">res := dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO]{
                 Data:       dest,
                 Page:       page,
                 Limit:      limit,
@@ -1067,19 +1067,19 @@ func (pr *productRequestService) CancleProductRequest(prID int, userID string) e
         <span class="cov0" title="0">return nil</span>
 }
 
-func (pr *productRequestService) UpdateProductRequestStatusAfterPaid(prID int) error <span class="cov0" title="0">{
+func (pr *productRequestService) UpdateProductRequestStatusAfterPaid(prID int) error <span class="cov8" title="1">{
         productRequest, err := pr.repo.FindByID(prID)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">productRequest.DeliveryStatus = types.Pending
+        <span class="cov8" title="1">productRequest.DeliveryStatus = types.Pending
         err = pr.repo.Update(productRequest)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		

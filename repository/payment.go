@@ -13,20 +13,25 @@ type PaymentRepository interface {
 	CreatePayment(ctx context.Context, pr *domain.ProductRequest) (*dto.CreatePaymentResponseDTO, error)
 }
 
-type PaymentRepositoryFactory struct {
+type PaymentRepositoryFactory interface {
+	Register(provider string, repo PaymentRepository)
+	GetRepository(provider string) (PaymentRepository, error)
+}
+
+type paymentRepositoryFactory struct {
 	repos map[string]PaymentRepository
 }
 
 func NewPaymentRepositoryFactory() PaymentRepositoryFactory {
-	return PaymentRepositoryFactory{repos: make(map[string]PaymentRepository)}
+	return &paymentRepositoryFactory{repos: make(map[string]PaymentRepository)}
 }
 
-func (f *PaymentRepositoryFactory) Register(provider string, repo PaymentRepository) {
+func (f *paymentRepositoryFactory) Register(provider string, repo PaymentRepository) {
 	log.Println("[💸] Registered", provider, "Payment repository!")
 	f.repos[provider] = repo
 }
 
-func (f *PaymentRepositoryFactory) GetRepository(provider string) (PaymentRepository, error) {
+func (f *paymentRepositoryFactory) GetRepository(provider string) (PaymentRepository, error) {
 	repo, exists := f.repos[provider]
 	if !exists {
 		return nil, errors.New("unsupported Payment provider")

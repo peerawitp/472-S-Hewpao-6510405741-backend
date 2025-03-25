@@ -96,7 +96,7 @@ func setup() *fiber.App {
 	offerUsecase := usecase.NewOfferService(offerRepo, productRequestRepo, userRepo, ctx)
 	offerHandler := rest.NewOfferHandler(offerUsecase)
 
-	checkoutUsecase := usecase.NewCheckoutUsecase(userRepo, productRequestRepo, transactionRepo, &paymentRepoFactory, &cfg, minioRepo, ctx)
+	checkoutUsecase := usecase.NewCheckoutUsecase(userRepo, productRequestRepo, transactionRepo, paymentRepoFactory, &cfg, minioRepo, ctx)
 	checkoutHandler := rest.NewCheckoutHandler(checkoutUsecase)
 
 	stripeWebhookHandler := webhook.NewStripeWebhookHandler(&cfg, checkoutUsecase, transactionUsecase, productRequestUsecase)
