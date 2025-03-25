@@ -76,7 +76,7 @@ func (v *verificationHandler) GetVerificationInfo(c *fiber.Ctx) error {
 		})
 	}
 
-	verificationID, err := strconv.ParseUint(verificationIDStr, 10, 64)
+	verificationID, err := strconv.Atoi(verificationIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),

@@ -49,7 +49,6 @@ func (r *MinIOS3RepositoryImpl) UploadFile(ctx context.Context, objectName strin
 	return uploadInfo, err
 }
 
-// TODO: Get url
 func (r *MinIOS3RepositoryImpl) GetSignedURL(ctx context.Context, bucketName string, objectName string, expires time.Duration) (string, error) {
 	url, err := r.client.PresignedGetObject(ctx, bucketName, objectName, expires, url.Values{})
 	if err != nil {

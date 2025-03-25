@@ -37,3 +37,11 @@ build-image:
 		--file ./docker/prod.Dockerfile \
 		--tag hewpao/hewpao-backend \
 		.
+
+test:
+	@ go test -v -cover ./usecase/
+
+test-logs:
+	@ go test -coverprofile=test-coverage/coverage.out ./usecase/
+	@ go tool cover -html=test-coverage/coverage.out -o test-coverage/coverage.html
+	@ open test-coverage/coverage.html

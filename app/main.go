@@ -24,7 +24,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-func main() {
+func setup() *fiber.App {
 	app := fiber.New()
 	cfg := config.NewConfig()
 	db := bootstrap.NewDB(&cfg)
@@ -96,7 +96,7 @@ func main() {
 	offerUsecase := usecase.NewOfferService(offerRepo, productRequestRepo, userRepo, ctx)
 	offerHandler := rest.NewOfferHandler(offerUsecase)
 
-	checkoutUsecase := usecase.NewCheckoutUsecase(userRepo, productRequestRepo, transactionRepo, &paymentRepoFactory, &cfg, minioRepo, ctx)
+	checkoutUsecase := usecase.NewCheckoutUsecase(userRepo, productRequestRepo, transactionRepo, paymentRepoFactory, &cfg, minioRepo, ctx)
 	checkoutHandler := rest.NewCheckoutHandler(checkoutUsecase)
 
 	stripeWebhookHandler := webhook.NewStripeWebhookHandler(&cfg, checkoutUsecase, transactionUsecase, productRequestUsecase)
@@ -152,7 +152,8 @@ func main() {
 
 	transactionRoute := app.Group("/transactions", middleware.AuthMiddleware(&cfg))
 	transactionRoute.Post("/", transactionHandler.CreateTransaction)
-	transactionRoute.Get("/:id", transactionHandler.GetTransactionByID)
+	transactionRoute.Get("/get-user-tx", transactionHandler.GetTransactionByUserID)
+	transactionRoute.Get("/get/:id", transactionHandler.GetTransactionByID)
 
 	checkoutRoute := app.Group("/checkout", middleware.AuthMiddleware(&cfg))
 	checkoutRoute.Post("/gateway", checkoutHandler.CheckoutWithPaymentGateway)
@@ -175,5 +176,10 @@ func main() {
 	messageRoute.Get("/message/:id", messageHandler.GetByID)
 	messageRoute.Post("/create", messageHandler.CreateMessage)
 
+	return app
+}
+
+func main() {
+	app := setup()
 	app.Listen(":9090")
 }

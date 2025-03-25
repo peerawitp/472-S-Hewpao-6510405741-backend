@@ -1,0 +1,1460 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>usecase: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/hewpao/hewpao-backend/usecase/auth.go (50.8%)</option>
+				
+				<option value="file1">github.com/hewpao/hewpao-backend/usecase/chat.go (100.0%)</option>
+				
+				<option value="file2">github.com/hewpao/hewpao-backend/usecase/checkout.go (0.0%)</option>
+				
+				<option value="file3">github.com/hewpao/hewpao-backend/usecase/message.go (100.0%)</option>
+				
+				<option value="file4">github.com/hewpao/hewpao-backend/usecase/notification.go (90.2%)</option>
+				
+				<option value="file5">github.com/hewpao/hewpao-backend/usecase/offer.go (100.0%)</option>
+				
+				<option value="file6">github.com/hewpao/hewpao-backend/usecase/productRequest.go (61.0%)</option>
+				
+				<option value="file7">github.com/hewpao/hewpao-backend/usecase/transaction.go (100.0%)</option>
+				
+				<option value="file8">github.com/hewpao/hewpao-backend/usecase/travelerPayoutAccount.go (100.0%)</option>
+				
+				<option value="file9">github.com/hewpao/hewpao-backend/usecase/user.go (100.0%)</option>
+				
+				<option value="file10">github.com/hewpao/hewpao-backend/usecase/verification.go (72.3%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package usecase
+
+import (
+        "context"
+        "time"
+
+        "github.com/golang-jwt/jwt"
+        "github.com/hewpao/hewpao-backend/config"
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/domain/exception"
+        "github.com/hewpao/hewpao-backend/dto"
+        "github.com/hewpao/hewpao-backend/repository"
+        "github.com/hewpao/hewpao-backend/util"
+)
+
+type AuthUsecase interface {
+        GetJWT(user *domain.User) (string, error)
+        LoginWithCredentials(ctx context.Context, req dto.LoginWithCredentialsRequestDTO) (*dto.LoginResponseDTO, error)
+        LoginWithOAuth(ctx context.Context, req dto.LoginWithOAuthRequestDTO) (*dto.LoginResponseDTO, error)
+        Register(ctx context.Context, req dto.RegisterUserRequestDTO) error
+}
+
+type authService struct {
+        userRepo         repository.UserRepository
+        oauthRepoFactory *repository.OAuthRepositoryFactory
+        cfg              *config.Config
+        minioRepo        repository.S3Repository
+        ctx              context.Context
+}
+
+func NewAuthUsecase(userRepo repository.UserRepository, oauthRepoFactory *repository.OAuthRepositoryFactory, cfg *config.Config, minioRepo repository.S3Repository, ctx context.Context) AuthUsecase <span class="cov8" title="1">{
+        return &amp;authService{
+                userRepo:         userRepo,
+                oauthRepoFactory: oauthRepoFactory,
+                cfg:              cfg,
+                minioRepo:        minioRepo,
+                ctx:              ctx,
+        }
+}</span>
+
+func (a *authService) GetJWT(user *domain.User) (string, error) <span class="cov8" title="1">{
+        if a.cfg.JWTSecret == "" </span><span class="cov8" title="1">{
+                return "", exception.ErrJWTSecretIsEmpty
+        }</span>
+
+        <span class="cov8" title="1">expiredAt := time.Now().Add(time.Hour * 24) // 1 day
+        claims := jwt.MapClaims{
+                "id":          user.ID,
+                "email":       user.Email,
+                "name":        user.Name,
+                "middle_name": user.MiddleName,
+                "surname":     user.Surname,
+                "is_verified": user.IsVerified,
+                "exp":         expiredAt.Unix(),
+        }
+
+        token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+        tokenString, err := token.SignedString([]byte(a.cfg.JWTSecret))
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return tokenString, nil</span>
+}
+
+func (a *authService) LoginWithCredentials(ctx context.Context, req dto.LoginWithCredentialsRequestDTO) (*dto.LoginResponseDTO, error) <span class="cov8" title="1">{
+        user, err := a.userRepo.FindByEmail(ctx, req.Email)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if user.Password == nil </span><span class="cov0" title="0">{
+                return nil, exception.ErrUserNoPassword
+        }</span>
+
+        <span class="cov8" title="1">same, err := util.VerifyPassword(req.Password, *user.Password)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if !same </span><span class="cov8" title="1">{
+                return nil, exception.ErrInvalidPassword
+        }</span>
+
+        <span class="cov8" title="1">tokenString, err := a.GetJWT(user)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">res := &amp;dto.LoginResponseDTO{
+                ID:          user.ID,
+                Email:       user.Email,
+                Name:        user.Name,
+                MiddleName:  user.MiddleName,
+                Surname:     user.Surname,
+                IsVerified:  user.IsVerified,
+                AccessToken: tokenString,
+        }
+
+        return res, nil</span>
+}
+
+func (a *authService) Register(ctx context.Context, req dto.RegisterUserRequestDTO) error <span class="cov8" title="1">{
+        exist, err := a.userRepo.FindByEmail(ctx, req.Email)
+        if err != nil &amp;&amp; err != exception.ErrUserNotFound </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if exist != nil </span><span class="cov8" title="1">{
+                return exception.ErrUserAlreadyExist
+        }</span>
+
+        <span class="cov8" title="1">encodedPassword, err := util.HashPassword(req.Password, util.DefaultArgon2Params)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">req.Password = encodedPassword
+
+        createErr := a.userRepo.Create(ctx, dto.CreateUserDTO{
+                Email:      req.Email,
+                Name:       req.Name,
+                MiddleName: req.MiddleName,
+                Surname:    req.Surname,
+                Password:   &amp;req.Password,
+        })
+        if createErr != nil </span><span class="cov0" title="0">{
+                return createErr
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (a *authService) LoginWithOAuth(ctx context.Context, req dto.LoginWithOAuthRequestDTO) (*dto.LoginResponseDTO, error) <span class="cov0" title="0">{
+        provider, err := a.oauthRepoFactory.GetRepository(req.Provider)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">userClaims, err := provider.VerifyIDToken(ctx, req.IDToken)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">user, err := a.userRepo.FindByEmail(ctx, userClaims.Email)
+        if err != nil &amp;&amp; err != exception.ErrUserNotFound </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Create the user if not found
+        <span class="cov0" title="0">if err == exception.ErrUserNotFound </span><span class="cov0" title="0">{
+                createErr := a.userRepo.Create(ctx, dto.CreateUserDTO{
+                        Email:      userClaims.Email,
+                        Name:       userClaims.Name,
+                        MiddleName: userClaims.MiddleName,
+                        Surname:    userClaims.Surname,
+                })
+                if createErr != nil </span><span class="cov0" title="0">{
+                        return nil, createErr
+                }</span>
+
+                <span class="cov0" title="0">user, err = a.userRepo.FindByEmail(ctx, userClaims.Email)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">tokenString, err := a.GetJWT(user)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">res := &amp;dto.LoginResponseDTO{
+                ID:          user.ID,
+                Email:       user.Email,
+                Name:        user.Name,
+                MiddleName:  user.MiddleName,
+                Surname:     user.Surname,
+                IsVerified:  user.IsVerified,
+                AccessToken: tokenString,
+        }
+
+        return res, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package usecase
+
+import (
+
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/repository"
+)
+
+type ChatUseCase interface {
+        CreateChat(name string) error
+        GetByID(id uint) (*domain.Chat, error)
+        GetByName(name string) (*domain.Chat)
+}
+
+type ChatService struct {
+        repo repository.ChatRepository
+}
+
+func NewChatService(repo repository.ChatRepository) ChatUseCase <span class="cov8" title="1">{
+        return &amp;ChatService{repo: repo}
+}</span>
+
+func (c *ChatService) CreateChat(name string) error <span class="cov8" title="1">{
+
+        if c.repo.GetByName(name) != nil </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+        <span class="cov8" title="1">chat := domain.Chat{Name: name}
+        err := c.repo.Create(&amp;chat)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (c *ChatService) GetByID(id uint) (*domain.Chat, error) <span class="cov8" title="1">{
+        return c.repo.GetByID(id)
+}</span>
+
+func (c *ChatService) GetByName(name string) (*domain.Chat) <span class="cov8" title="1">{
+        if c.repo.GetByName(name) == nil </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+        
+        <span class="cov8" title="1">return c.repo.GetByName(name)</span>
+}</pre>
+		
+		<pre class="file" id="file2" style="display: none">package usecase
+
+import (
+        "context"
+        "time"
+
+        "github.com/hewpao/hewpao-backend/config"
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/dto"
+        "github.com/hewpao/hewpao-backend/repository"
+        "github.com/hewpao/hewpao-backend/types"
+)
+
+type CheckoutUsecase interface {
+        CheckoutWithPaymentGateway(ctx context.Context, userID string, req *dto.CheckoutRequestDTO) (*dto.CheckoutResponseDTO, error)
+        UpdateTransactionStatus(ctx context.Context, transactionID string, status types.PaymentStatus) error
+}
+
+type checkoutService struct {
+        userRepo           repository.UserRepository
+        productRequestRepo repository.ProductRequestRepository
+        transactionRepo    repository.TransactionRepository
+        paymentRepoFactory *repository.PaymentRepositoryFactory
+        cfg                *config.Config
+        ctx                context.Context
+}
+
+func NewCheckoutUsecase(userRepo repository.UserRepository, productRequestRepo repository.ProductRequestRepository, transactionRepo repository.TransactionRepository, paymentRepoFactory *repository.PaymentRepositoryFactory, cfg *config.Config, minioRepo repository.S3Repository, ctx context.Context) CheckoutUsecase <span class="cov0" title="0">{
+        return &amp;checkoutService{
+                userRepo:           userRepo,
+                productRequestRepo: productRequestRepo,
+                transactionRepo:    transactionRepo,
+                paymentRepoFactory: paymentRepoFactory,
+                cfg:                cfg,
+                ctx:                ctx,
+        }
+}</span>
+
+func (c *checkoutService) CheckoutWithPaymentGateway(ctx context.Context, userID string, req *dto.CheckoutRequestDTO) (*dto.CheckoutResponseDTO, error) <span class="cov0" title="0">{
+        _, err := c.productRequestRepo.IsOwnedByUser(int(req.ProductRequestID), userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">provider, err := c.paymentRepoFactory.GetRepository(req.PaymentGateway)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">productRequest, err := c.productRequestRepo.FindByID(int(req.ProductRequestID))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">payment, err := provider.CreatePayment(ctx, productRequest)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Create transaction
+        <span class="cov0" title="0">transaction := &amp;domain.Transaction{
+                UserID:              userID,
+                Amount:              productRequest.Budget,
+                Currency:            "THB",
+                ThirdPartyPaymentID: &amp;payment.PaymentID,
+                ThirdPartyGateway:   req.PaymentGateway,
+                ProductRequestID:    &amp;productRequest.ID,
+                Status:              types.PaymentPending,
+                CreatedAt:           time.Now(),
+        }
+
+        txErr := c.transactionRepo.Store(ctx, transaction)
+        if txErr != nil </span><span class="cov0" title="0">{
+                return nil, txErr
+        }</span>
+
+        <span class="cov0" title="0">res := &amp;dto.CheckoutResponseDTO{
+                Payment: payment,
+        }
+
+        return res, nil</span>
+}
+
+func (c *checkoutService) UpdateTransactionStatus(ctx context.Context, thirdPartyPaymentID string, status types.PaymentStatus) error <span class="cov0" title="0">{
+        return c.transactionRepo.UpdateStatusByThirdPartyPaymentID(ctx, thirdPartyPaymentID, status)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package usecase
+
+import (
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/repository"
+)
+
+type MessageService struct {
+        repo repository.MessageRepository
+}
+
+type MessageUsecase interface {
+        CreateMessage(userID string, chatID string, text string) (*domain.Message, error)
+        GetByChatID(id string) ([]domain.Message, error)
+        GetByID(id string) (*domain.Message, error)
+}
+
+func NewMessageService(ms repository.MessageRepository) *MessageService <span class="cov8" title="1">{
+        return &amp;MessageService{repo: ms}
+}</span>
+
+func (m *MessageService) CreateMessage(userID string, chatID uint, text string) (*domain.Message, error) <span class="cov8" title="1">{
+
+        message := &amp;domain.Message{
+                UserID:  userID,
+                ChatID:  chatID,
+                Content: text,
+        }
+
+        err := m.repo.Store(message)
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return message, nil</span>
+}
+
+func (m *MessageService) GetByChatID(id string) ([]domain.Message, error) <span class="cov8" title="1">{
+
+        var messages []domain.Message
+        messages, err := m.repo.GetByChatID(id)
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return messages, nil</span>
+}
+
+func (m *MessageService) GetByID(id string) (*domain.Message, error) <span class="cov8" title="1">{
+        var message *domain.Message
+        message, err := m.repo.GetByID(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return message, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package usecase
+
+import (
+        "context"
+
+        "github.com/hewpao/hewpao-backend/config"
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/repository"
+
+        "github.com/hewpao/hewpao-backend/types"
+        "gopkg.in/gomail.v2"
+)
+
+type NotificationUsecase interface {
+        PrNotify(prod *domain.ProductRequest, provider string) error
+}
+
+type productRequestNotifier struct {
+        notificationRepoFactory repository.NotificationRepositoryFactory
+        userRepo                repository.UserRepository
+        ctx                     context.Context
+        message                 *gomail.Message
+        cfg                     *config.Config
+        offerRepo               repository.OfferRepository
+}
+
+func NewNotificationUsecase(notificationRepoFactory repository.NotificationRepositoryFactory, userRepo repository.UserRepository, ctx context.Context, message *gomail.Message, cfg *config.Config, offerRepo repository.OfferRepository) NotificationUsecase <span class="cov8" title="1">{
+        return &amp;productRequestNotifier{
+                notificationRepoFactory: notificationRepoFactory,
+                userRepo:                userRepo,
+                offerRepo:               offerRepo,
+                ctx:                     ctx,
+                message:                 message,
+                cfg:                     cfg,
+        }
+}</span>
+
+func prSend(toUserID string, pn *productRequestNotifier, prod *domain.ProductRequest, notificationRepo repository.NotificationRepository) error <span class="cov8" title="1">{
+        user, err := pn.userRepo.FindByID(pn.ctx, toUserID)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">err = notificationRepo.PrNotify(user, prod)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (pn *productRequestNotifier) PrNotify(prod *domain.ProductRequest, provider string) error <span class="cov8" title="1">{
+        notificationRepo, err := pn.notificationRepoFactory.GetRepository(provider)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">var toUserID string
+
+        offer := domain.Offer{}
+        if prod.SelectedOfferID != nil </span><span class="cov8" title="1">{
+                offer.ID = *prod.SelectedOfferID
+                err = pn.offerRepo.GetByID(&amp;offer)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov8" title="1">switch prod.DeliveryStatus </span>{
+        case types.Pending, types.Purchased, types.Refunded:<span class="cov8" title="1">
+                toUserID = *prod.UserID
+                err := prSend(toUserID, pn, prod, notificationRepo)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        case types.Opening, types.Cancel, types.Returned:<span class="cov8" title="1">
+                toUserID = offer.UserID
+                if toUserID == "" </span><span class="cov8" title="1">{
+                        return nil
+                }</span>
+
+                <span class="cov8" title="1">err = prSend(toUserID, pn, prod, notificationRepo)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        case types.PickedUp, types.OutForDelivery, types.Delivered:<span class="cov8" title="1">
+                buyerID := *prod.UserID
+
+                err = prSend(buyerID, pn, prod, notificationRepo)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">travelerID := offer.UserID
+                if travelerID == "" </span><span class="cov8" title="1">{
+                        return nil
+                }</span>
+
+                <span class="cov8" title="1">err = prSend(travelerID, pn, prod, notificationRepo)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        default:<span class="cov0" title="0">
+                return nil</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package usecase
+
+import (
+        "context"
+
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/domain/exception"
+        "github.com/hewpao/hewpao-backend/dto"
+        "github.com/hewpao/hewpao-backend/repository"
+)
+
+type OfferUsecase interface {
+        CreateOffer(req *dto.CreateOfferDTO, userID string) error
+        GetOfferDetailByOfferID(offerID int, buyerUserID string) (*dto.GetOfferDetailDTO, error)
+}
+
+type offerService struct {
+        offerRepo          repository.OfferRepository
+        productRequestRepo repository.ProductRequestRepository
+        userRepo           repository.UserRepository
+        ctx                context.Context
+}
+
+func NewOfferService(
+        offerRepo repository.OfferRepository,
+        productRequestRepo repository.ProductRequestRepository,
+        userRepo repository.UserRepository,
+        ctx context.Context,
+) OfferUsecase <span class="cov8" title="1">{
+        return &amp;offerService{
+                offerRepo:          offerRepo,
+                productRequestRepo: productRequestRepo,
+                userRepo:           userRepo,
+                ctx:                ctx,
+        }
+}</span>
+
+func (o *offerService) CreateOffer(req *dto.CreateOfferDTO, userID string) error <span class="cov8" title="1">{
+        prID := int(req.ProductRequestID)
+        productRequest, err := o.productRequestRepo.FindByID(prID)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if userID == *productRequest.UserID </span><span class="cov8" title="1">{
+                return exception.ErrCouldNotSelfOffer
+        }</span>
+
+        <span class="cov8" title="1">user, err := o.userRepo.FindByID(o.ctx, userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">offer := domain.Offer{
+                ProductRequestID: &amp;req.ProductRequestID,
+                ProductRequest:   productRequest,
+                OfferDate:        req.OfferDate,
+                UserID:           userID,
+                User:             user,
+        }
+
+        err = o.offerRepo.Create(&amp;offer)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (o *offerService) GetOfferDetailByOfferID(offerID int, buyerUserID string) (*dto.GetOfferDetailDTO, error) <span class="cov8" title="1">{
+        offer, err := o.offerRepo.GetOfferDetailByOfferID(offerID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">isUserOwnPR, err := o.productRequestRepo.IsOwnedByUser(int(offer.ProductRequest.ID), buyerUserID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if !isUserOwnPR </span><span class="cov8" title="1">{
+                return nil, exception.ErrPermissionDenied
+        }</span>
+
+        <span class="cov8" title="1">res := &amp;dto.GetOfferDetailDTO{
+                ID:               offer.ID,
+                ProductRequestID: offer.ProductRequestID,
+                ProductRequest:   offer.ProductRequest,
+                UserID:           offer.UserID,
+                User:             offer.User,
+                OfferDate:        offer.OfferDate,
+        }
+
+        return res, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package usecase
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+        "mime/multipart"
+
+        "github.com/hewpao/hewpao-backend/config"
+
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/domain/exception"
+        "github.com/hewpao/hewpao-backend/dto"
+        "github.com/hewpao/hewpao-backend/repository"
+        "github.com/hewpao/hewpao-backend/types"
+        "github.com/hewpao/hewpao-backend/util"
+        "github.com/minio/minio-go/v7"
+        "gopkg.in/gomail.v2"
+)
+
+type ProductRequestUsecase interface {
+        CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error
+        GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error)
+        GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error)
+        GetTravelerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error)
+        GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error)
+        UpdateProductRequest(req *dto.UpdateProductRequestDTO, prID int, userID string) error
+        UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) (*domain.ProductRequest, error)
+        UpdateProductRequestStatusAfterPaid(prID int) error
+}
+
+type productRequestService struct {
+        repo      repository.ProductRequestRepository
+        minioRepo repository.S3Repository
+        ctx       context.Context
+        offerRepo repository.OfferRepository
+        userRepo  repository.UserRepository
+        chatRepo  repository.ChatRepository
+        cfg       *config.Config
+        message   *gomail.Message
+}
+
+func NewProductRequestService(repo repository.ProductRequestRepository, minioRepo repository.S3Repository, ctx context.Context, offerRepo repository.OfferRepository, userRepo repository.UserRepository, chatRepo repository.ChatRepository, cfg *config.Config, message *gomail.Message) ProductRequestUsecase <span class="cov8" title="1">{
+        return &amp;productRequestService{
+                repo:      repo,
+                minioRepo: minioRepo,
+                ctx:       ctx,
+                offerRepo: offerRepo,
+                userRepo:  userRepo,
+                cfg:       cfg,
+                message:   message,
+                chatRepo:  chatRepo,
+        }
+}</span>
+
+func (pr *productRequestService) UpdateProductRequestStatus(req *dto.UpdateProductRequestStatusDTO, prID int, userID string) (*domain.ProductRequest, error) <span class="cov8" title="1">{
+        productRequest, err := pr.repo.FindByID(prID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">user, err := pr.userRepo.FindByID(pr.ctx, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if user.Role != types.Admin </span><span class="cov8" title="1">{
+                switch user.IsVerified </span>{
+                case true:<span class="cov8" title="1"> // traveler &gt; purchase + cancel
+                        if productRequest.SelectedOfferID == nil </span><span class="cov0" title="0">{
+                                return nil, exception.ErrCouldNotUpdateStatus
+                        }</span>
+
+                        <span class="cov8" title="1">offer := new(domain.Offer)
+                        offer.ID = *productRequest.SelectedOfferID
+                        err = pr.offerRepo.GetByID(offer)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, err
+                        }</span>
+
+                        <span class="cov8" title="1">allowedTravelerTransitions := map[types.DeliveryStatus]bool{
+                                types.Purchased: true,
+                                types.PickedUp:  true,
+                                types.Cancel:    true,
+                        }
+
+                        if !allowedTravelerTransitions[req.DeliveryStatus] ||
+                                !types.AllowedStatusTransitions[productRequest.DeliveryStatus][req.DeliveryStatus] </span><span class="cov0" title="0">{
+                                return nil, exception.ErrPermissionDenied
+                        }</span>
+
+                case false:<span class="cov8" title="1"> // Buyer: Allowed to transition only to Cancel
+                        if *productRequest.UserID != userID </span><span class="cov0" title="0">{
+                                return nil, exception.ErrPermissionDenied
+                        }</span>
+
+                        <span class="cov8" title="1">allowedBuyerTransitions := map[types.DeliveryStatus]bool{
+                                types.Cancel: true,
+                        }
+
+                        if !allowedBuyerTransitions[req.DeliveryStatus] ||
+                                !types.AllowedStatusTransitions[productRequest.DeliveryStatus][req.DeliveryStatus] </span><span class="cov0" title="0">{
+                                return nil, exception.ErrPermissionDenied
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">productRequest.DeliveryStatus = req.DeliveryStatus
+
+        err = pr.repo.Update(productRequest)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return productRequest, nil</span>
+}
+
+func (pr *productRequestService) UpdateProductRequest(req *dto.UpdateProductRequestDTO, prID int, userID string) error <span class="cov0" title="0">{
+        fmt.Println(prID, userID)
+        productRequest, err := pr.repo.FindByID(prID)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if *productRequest.UserID != userID </span><span class="cov0" title="0">{
+                return exception.ErrPermissionDenied
+        }</span>
+
+        <span class="cov0" title="0">if req.SelectedOfferID != 0 </span><span class="cov0" title="0">{
+
+                offer := new(domain.Offer)
+                offer.ID = req.SelectedOfferID
+                err = pr.offerRepo.GetByID(offer)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov0" title="0">found := false
+                for _, o := range productRequest.Offers </span><span class="cov0" title="0">{
+                        if o.ID == offer.ID </span><span class="cov0" title="0">{
+                                found = true
+                                break</span>
+                        }
+                }
+
+                <span class="cov0" title="0">if !found </span><span class="cov0" title="0">{
+                        return exception.ErrOfferNotFound
+                }</span>
+
+        }
+
+        <span class="cov0" title="0">productRequest.Name = req.Name
+        productRequest.Desc = req.Desc
+        productRequest.Category = req.Category
+        productRequest.Quantity = req.Quantity
+        if req.SelectedOfferID != 0 </span><span class="cov0" title="0">{
+                productRequest.SelectedOfferID = &amp;req.SelectedOfferID
+        }</span> else<span class="cov0" title="0"> {
+                productRequest.SelectedOfferID = nil
+        }</span>
+
+        <span class="cov0" title="0">err = pr.repo.Update(productRequest)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (pr *productRequestService) CreateProductRequest(productRequest *domain.ProductRequest, files []*multipart.FileHeader, readers []io.Reader) error <span class="cov8" title="1">{
+        uploadInfos := []minio.UploadInfo{}
+        for i, file := range files </span><span class="cov8" title="1">{
+                reader := readers[i]
+
+                uploadInfo, err := pr.minioRepo.UploadFile(pr.ctx, file.Filename, reader, file.Size, file.Header.Get("Content-Type"), "product-request-images")
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">uploadInfos = append(uploadInfos, uploadInfo)</span>
+        }
+
+        <span class="cov8" title="1">uris := []string{}
+
+        for _, uploadInfo := range uploadInfos </span><span class="cov8" title="1">{
+                uri := uploadInfo.Bucket + "/" + uploadInfo.Key
+                uris = append(uris, uri)
+        }</span>
+
+        <span class="cov8" title="1">productRequest.Images = uris
+
+        chatName := productRequest.Name
+        newChat := domain.Chat{
+                Name: chatName,
+        }
+
+        err := pr.chatRepo.Create(&amp;newChat)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">productRequest.ChatID = newChat.ID
+
+        err = pr.repo.Create(productRequest)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (pr *productRequestService) GetDetailByID(id int) (*dto.DetailOfProductRequestResponseDTO, error) <span class="cov8" title="1">{
+        productRequest, err := pr.repo.FindByID(id)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">res := dto.DetailOfProductRequestResponseDTO{
+                ID:              productRequest.ID,
+                Name:            productRequest.Name,
+                Desc:            productRequest.Desc,
+                Category:        productRequest.Category,
+                Images:          urls,
+                Budget:          productRequest.Budget,
+                Quantity:        productRequest.Quantity,
+                UserID:          productRequest.UserID,
+                Offers:          productRequest.Offers,
+                To:              productRequest.To,
+                From:            productRequest.From,
+                CheckService:    productRequest.CheckService,
+                Transactions:    productRequest.Transactions,
+                SelectedOfferID: productRequest.SelectedOfferID,
+                DeliveryStatus:  productRequest.DeliveryStatus,
+                CreatedAt:       productRequest.CreatedAt,
+                UpdatedAt:       productRequest.UpdatedAt,
+                DeletedAt:       &amp;productRequest.DeletedAt.Time,
+        }
+
+        return &amp;res, nil</span>
+}
+
+func (pr *productRequestService) GetTravelerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) <span class="cov8" title="1">{
+        productRequests, err := pr.repo.FindByOfferUserID(id)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">res := []dto.DetailOfProductRequestResponseDTO{}
+
+        for _, productRequest := range productRequests </span><span class="cov8" title="1">{
+                urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+
+                <span class="cov8" title="1">productRequestRes := dto.DetailOfProductRequestResponseDTO{
+                        ID:              productRequest.ID,
+                        Name:            productRequest.Name,
+                        Desc:            productRequest.Desc,
+                        Category:        productRequest.Category,
+                        Images:          urls,
+                        Budget:          productRequest.Budget,
+                        Quantity:        productRequest.Quantity,
+                        UserID:          productRequest.UserID,
+                        Offers:          productRequest.Offers,
+                        To:              productRequest.To,
+                        From:            productRequest.From,
+                        CheckService:    productRequest.CheckService,
+                        SelectedOfferID: productRequest.SelectedOfferID,
+                        DeliveryStatus:  productRequest.DeliveryStatus,
+                        CreatedAt:       productRequest.CreatedAt,
+                        UpdatedAt:       productRequest.UpdatedAt,
+                        DeletedAt:       &amp;productRequest.DeletedAt.Time,
+                }
+
+                res = append(res, productRequestRes)</span>
+        }
+
+        <span class="cov8" title="1">return res, nil</span>
+}
+
+func (pr *productRequestService) GetBuyerProductRequestsByUserID(id string) ([]dto.DetailOfProductRequestResponseDTO, error) <span class="cov8" title="1">{
+        productRequests, err := pr.repo.FindByUserID(id)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">res := []dto.DetailOfProductRequestResponseDTO{}
+
+        for _, productRequest := range productRequests </span><span class="cov8" title="1">{
+                urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+
+                <span class="cov8" title="1">productRequestRes := dto.DetailOfProductRequestResponseDTO{
+                        ID:              productRequest.ID,
+                        Name:            productRequest.Name,
+                        Desc:            productRequest.Desc,
+                        Category:        productRequest.Category,
+                        Images:          urls,
+                        Budget:          productRequest.Budget,
+                        Quantity:        productRequest.Quantity,
+                        UserID:          productRequest.UserID,
+                        Offers:          productRequest.Offers,
+                        To:              productRequest.To,
+                        From:            productRequest.From,
+                        CheckService:    productRequest.CheckService,
+                        DeliveryStatus:  productRequest.DeliveryStatus,
+                        SelectedOfferID: productRequest.SelectedOfferID,
+                        CreatedAt:       productRequest.CreatedAt,
+                        UpdatedAt:       productRequest.UpdatedAt,
+                        DeletedAt:       &amp;productRequest.DeletedAt.Time,
+                }
+
+                res = append(res, productRequestRes)</span>
+        }
+
+        <span class="cov8" title="1">return res, nil</span>
+}
+
+func (pr *productRequestService) GetPaginatedProductRequests(page, limit int) (*dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO], error) <span class="cov8" title="1">{
+        productRequests, totalRows, err := pr.repo.FindPaginatedProductRequests(page, limit)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">totalPages := (int(totalRows) + limit - 1) / limit
+
+        var dest []dto.DetailOfProductRequestResponseDTO
+
+        for _, productRequest := range productRequests </span><span class="cov8" title="1">{
+                urls, err := util.GetUrls(pr.minioRepo, pr.ctx, pr.cfg, productRequest.Images)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">productRequestRes := dto.DetailOfProductRequestResponseDTO{
+                        ID:              productRequest.ID,
+                        Name:            productRequest.Name,
+                        Desc:            productRequest.Desc,
+                        Category:        productRequest.Category,
+                        Images:          urls,
+                        Budget:          productRequest.Budget,
+                        Quantity:        productRequest.Quantity,
+                        UserID:          productRequest.UserID,
+                        Offers:          productRequest.Offers,
+                        To:              productRequest.To,
+                        From:            productRequest.From,
+                        CheckService:    productRequest.CheckService,
+                        DeliveryStatus:  productRequest.DeliveryStatus,
+                        SelectedOfferID: productRequest.SelectedOfferID,
+                        CreatedAt:       productRequest.CreatedAt,
+                        UpdatedAt:       productRequest.UpdatedAt,
+                        DeletedAt:       &amp;productRequest.DeletedAt.Time,
+                }
+                dest = append(dest, productRequestRes)</span>
+        }
+
+        <span class="cov8" title="1">res := dto.PaginationGetProductRequestResponse[dto.DetailOfProductRequestResponseDTO]{
+                Data:       dest,
+                Page:       page,
+                Limit:      limit,
+                TotalRows:  totalRows,
+                TotalPages: totalPages,
+        }
+
+        return &amp;res, nil</span>
+}
+
+func (pr *productRequestService) CancleProductRequest(prID int, userID string) error <span class="cov0" title="0">{
+        productRequest, err := pr.repo.FindByID(prID)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if *productRequest.UserID != userID </span><span class="cov0" title="0">{
+                return errors.New("you are not the owner of this product request")
+        }</span>
+
+        <span class="cov0" title="0">err = pr.repo.Delete(productRequest)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (pr *productRequestService) UpdateProductRequestStatusAfterPaid(prID int) error <span class="cov8" title="1">{
+        productRequest, err := pr.repo.FindByID(prID)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">productRequest.DeliveryStatus = types.Pending
+        err = pr.repo.Update(productRequest)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package usecase
+
+import (
+        "context"
+        "errors"
+        "time"
+
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/repository"
+)
+
+var allowedCurrencies = map[string]bool{
+        "THB": true,
+}
+
+type TransactionUseCase interface {
+        CreateTransaction(userID string, amount float64, currency string) (*domain.Transaction, error)
+        GetTransactionByID(ctx context.Context, id string) (*domain.Transaction, error)
+        GetTransactionByThirdPartyPaymentID(ctx context.Context, thirdPartyPaymentID string) (*domain.Transaction, error)
+        GetTransactionsByUserID(ctx context.Context, userID string) ([]*domain.Transaction, error)
+}
+
+type TransactionService struct {
+        repo repository.TransactionRepository
+}
+
+func NewTransactionService(tr repository.TransactionRepository) *TransactionService <span class="cov8" title="1">{
+        return &amp;TransactionService{repo: tr}
+}</span>
+
+func (u *TransactionService) CreateTransaction(userID string, amount float64, currency string) (*domain.Transaction, error) <span class="cov8" title="1">{
+        if _, exists := allowedCurrencies[currency]; !exists </span><span class="cov8" title="1">{
+                return nil, errors.New("unsupported currency")
+        }</span>
+
+        <span class="cov8" title="1">transaction := &amp;domain.Transaction{
+                UserID:    userID,
+                Amount:    amount,
+                Currency:  currency,
+                CreatedAt: time.Now(),
+        }
+
+        err := u.repo.Store(context.Background(), transaction)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return transaction, nil</span>
+}
+
+func (u *TransactionService) GetTransactionByID(ctx context.Context, id string) (*domain.Transaction, error) <span class="cov8" title="1">{
+        transaction, err := u.repo.FindByID(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return transaction, nil</span>
+}
+
+func (u *TransactionService) GetTransactionByThirdPartyPaymentID(ctx context.Context, thirdPartyPaymentID string) (*domain.Transaction, error) <span class="cov8" title="1">{
+        transaction, err := u.repo.FindByThirdPartyPaymentID(ctx, thirdPartyPaymentID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return transaction, nil</span>
+}
+
+func (u *TransactionService) GetTransactionsByUserID(ctx context.Context, userID string) ([]*domain.Transaction, error) <span class="cov8" title="1">{
+        transactions, err := u.repo.FindByUserID(ctx, userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return transactions, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package usecase
+
+import (
+        "context"
+
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/dto"
+        "github.com/hewpao/hewpao-backend/repository"
+)
+
+type TravelerPayoutAccountUsecase interface {
+        CreateTravelerPayoutAccount(userID string, req *dto.CreateTravelerPayoutAccountRequestDTO) error
+        GetAccountsByUserID(userID string) (*dto.GetTravelerPayoutAccountResponseDTO, error)
+        GetAllAvailableBank() (*dto.GetAllAvailableBankResponseDTO, error)
+}
+
+type travelerPayoutAccountService struct {
+        ctx      context.Context
+        repo     repository.TravelerPayoutAccountRepository
+        bankRepo repository.BankRepository
+}
+
+func NewTravelerPayoutAccountService(ctx context.Context, repo repository.TravelerPayoutAccountRepository, bankRepo repository.BankRepository) TravelerPayoutAccountUsecase <span class="cov8" title="1">{
+        return &amp;travelerPayoutAccountService{
+                ctx:      ctx,
+                repo:     repo,
+                bankRepo: bankRepo,
+        }
+}</span>
+
+func (t *travelerPayoutAccountService) CreateTravelerPayoutAccount(userID string, req *dto.CreateTravelerPayoutAccountRequestDTO) error <span class="cov8" title="1">{
+        bank, err := t.bankRepo.GetBySwift(req.BankSwift)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">account := &amp;domain.TravelerPayoutAccount{
+                UserID:        userID,
+                AccountName:   req.AccountName,
+                AccountNumber: req.AccountNumber,
+                BankSwift:     bank.SwiftCode,
+        }
+
+        storeErr := t.repo.Store(t.ctx, account)
+        if storeErr != nil </span><span class="cov8" title="1">{
+                return storeErr
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (t *travelerPayoutAccountService) GetAccountsByUserID(userID string) (*dto.GetTravelerPayoutAccountResponseDTO, error) <span class="cov8" title="1">{
+        accounts, err := t.repo.FindByUserID(t.ctx, userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">res := &amp;dto.GetTravelerPayoutAccountResponseDTO{
+                Accounts: accounts,
+        }
+
+        return res, nil</span>
+}
+
+func (t *travelerPayoutAccountService) GetAllAvailableBank() (*dto.GetAllAvailableBankResponseDTO, error) <span class="cov8" title="1">{
+        banks, err := t.bankRepo.GetAll()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">res := &amp;dto.GetAllAvailableBankResponseDTO{
+                Banks: banks,
+        }
+
+        return res, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package usecase
+
+import (
+        "context"
+
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/dto"
+        "github.com/hewpao/hewpao-backend/repository"
+)
+
+type UserUsecase interface {
+        GetUserByID(ctx context.Context, id string) (*domain.User, error)
+        EditProfile(ctx context.Context, userID string, req dto.EditProfileDTO) error
+}
+
+type userService struct {
+        userRepo repository.UserRepository
+}
+
+func NewUserUsecase(userRepo repository.UserRepository) UserUsecase <span class="cov8" title="1">{
+        return &amp;userService{
+                userRepo: userRepo,
+        }
+}</span>
+
+func (u *userService) GetUserByID(ctx context.Context, id string) (*domain.User, error) <span class="cov8" title="1">{
+        user, err := u.userRepo.FindByID(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return user, nil</span>
+}
+
+func (u *userService) EditProfile(ctx context.Context, userID string, req dto.EditProfileDTO) error <span class="cov8" title="1">{
+        if err := u.userRepo.EditProfile(ctx, userID, req); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package usecase
+
+import (
+        "context"
+        "io"
+        "mime/multipart"
+
+        "github.com/hewpao/hewpao-backend/config"
+        "github.com/hewpao/hewpao-backend/domain"
+        "github.com/hewpao/hewpao-backend/domain/exception"
+        "github.com/hewpao/hewpao-backend/dto"
+        "github.com/hewpao/hewpao-backend/repository"
+        "github.com/hewpao/hewpao-backend/types"
+        "github.com/hewpao/hewpao-backend/util"
+)
+
+type VerificationUsecase interface {
+        VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string, provider string) error
+        GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error
+        UpdateIsVerified(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error
+}
+
+type verificationService struct {
+        minioRepo        repository.S3Repository
+        ctx              context.Context
+        cfg              config.Config
+        userRepo         repository.UserRepository
+        verificationRepo repository.VerificationRepository
+        ekycRepoFactory  repository.EKYCRepositoryFactory
+}
+
+func NewVerificationService(minioRepo repository.S3Repository, ctx context.Context, cfg config.Config, userRepo repository.UserRepository, verificationRepo repository.VerificationRepository, ekycRepoFactory repository.EKYCRepositoryFactory) VerificationUsecase <span class="cov8" title="1">{
+        return &amp;verificationService{
+                minioRepo:        minioRepo,
+                ctx:              ctx,
+                cfg:              cfg,
+                userRepo:         userRepo,
+                verificationRepo: verificationRepo,
+                ekycRepoFactory:  ekycRepoFactory,
+        }
+}</span>
+
+func (v *verificationService) UpdateIsVerified(req *dto.UpdateUserVerificationDTO, userEmail string, instructorEmail string) error <span class="cov8" title="1">{
+        instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if instructor.Role != types.Admin </span><span class="cov0" title="0">{
+                return exception.ErrPermissionDenied
+        }</span>
+
+        <span class="cov8" title="1">user, err := v.userRepo.FindByEmail(v.ctx, userEmail)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">user.IsVerified = req.Isverified
+        err = v.userRepo.UpdateVerification(v.ctx, user)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func newVerification(res *dto.EKYCResponseDTO, userID string, cardImageURI string) *domain.Verification <span class="cov8" title="1">{
+        return &amp;domain.Verification{
+                UserID:      userID,
+                CardImage:   &amp;cardImageURI,
+                IDNumber:    res.IDNumber,
+                FirstNameTh: res.ThFName,
+                LastNameTh:  res.ThLName,
+                FirstNameEn: res.EnFName,
+                LastNameEn:  res.EnLName,
+                Gender:      res.Gender,
+                DOBTh:       res.ThDOB,
+                DOBEn:       res.EnDOB,
+                ExpireTh:    res.ThExpire,
+                ExpireEn:    res.EnExpire,
+                IssueTh:     res.ThIssue,
+                IssueEn:     res.EnIssue,
+                Address:     res.Address,
+                SubDistrict: res.SubDistrict,
+                District:    res.District,
+                Province:    res.Province,
+                PostalCode:  res.PostalCode,
+        }
+}</span>
+
+func (v *verificationService) VerifyWithKYC(reader io.Reader, file *multipart.FileHeader, userID string, provider string) error <span class="cov8" title="1">{
+        ekyc, err := v.ekycRepoFactory.GetRepository(provider)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">user, err := v.userRepo.FindByID(v.ctx, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">uploadInfo, err := v.minioRepo.UploadFile(v.ctx, file.Filename, reader, file.Size, file.Header.Get("Content-Type"), "verification-images")
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">uri := uploadInfo.Bucket + "/" + uploadInfo.Key
+
+        res, err := ekyc.Verify(file)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">verification := newVerification(res, user.ID, uri)
+        if err := v.verificationRepo.Create(verification); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (v *verificationService) GetVerificationInfo(instructorEmail string, info *domain.Verification, verificationID uint) error <span class="cov8" title="1">{
+        instructor, err := v.userRepo.FindByEmail(v.ctx, instructorEmail)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if instructor.Role != types.Admin </span><span class="cov0" title="0">{
+                return exception.ErrPermissionDenied
+        }</span>
+
+        <span class="cov8" title="1">verification, err := v.verificationRepo.FindByID(verificationID)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">images := []string{*verification.CardImage}
+        urls, err := util.GetUrls(v.minioRepo, v.ctx, &amp;v.cfg, images)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">*info = *verification
+        *info.CardImage = urls[0]
+
+        return nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

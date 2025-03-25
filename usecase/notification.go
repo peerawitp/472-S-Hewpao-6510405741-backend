@@ -85,15 +85,17 @@ func (pn *productRequestNotifier) PrNotify(prod *domain.ProductRequest, provider
 		}
 	case types.PickedUp, types.OutForDelivery, types.Delivered:
 		buyerID := *prod.UserID
-		travelerID := offer.UserID
-		if travelerID == "" {
-			return nil
-		}
 
 		err = prSend(buyerID, pn, prod, notificationRepo)
 		if err != nil {
 			return err
 		}
+
+		travelerID := offer.UserID
+		if travelerID == "" {
+			return nil
+		}
+
 		err = prSend(travelerID, pn, prod, notificationRepo)
 		if err != nil {
 			return err
